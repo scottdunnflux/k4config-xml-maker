@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- For compatibility with older browsers -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>K4 Config.xml maker</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Prism CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.css" rel="stylesheet" />
+  <style>
+    body { margin: 20px; }
+    .server-disabled { text-decoration: line-through; }
+    .xml-preview-container { position: relative; }
+    .copy-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+    .error { border-color: red; }
+    /* Center download/share buttons below XML preview */
+    .download-btn-container {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .download-btn-container button {
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>The Amazing `K4 Config.xml` maker</h1>
+    <p class="text-muted">K4 solutions from Flux Consulting, Inc.—Trusted since 1996.</p>
+    <div class="row">
+      <!-- Left Column: Controls and Form -->
+      <div class="col-md-6">
+        <!-- Top 3-Panel Interface -->
+        <ul class="nav nav-tabs" id="topTab" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="new-tab" data-bs-toggle="tab" data-bs-target="#new-panel" type="button" role="tab">New</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="load-tab" data-bs-toggle="tab" data-bs-target="#load-panel" type="button" role="tab">Load Config</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="test-tab" data-bs-toggle="tab" data-bs-target="#test-panel" type="button" role="tab">Apply Test URL</button>
+          </li>
+        </ul>
+        <div class="tab-content border-bottom border-start border-end p-3" id="topTabContent">
+          <!-- Panel 1: New -->
+          <div class="tab-pane fade show active" id="new-panel" role="tabpanel" aria-labelledby="new-tab">
+            <p>Clicking "New" will reset all values to their default settings. This will clear any current changes.</p>
+            <button type="button" class="btn btn-warning" id="newBtn">New</button>
+          </div>
+          <!-- Panel 2: Load Config -->
+          <div class="tab-pane fade" id="load-panel" role="tabpanel" aria-labelledby="load-tab">
+            <div class="mb-3">
+              <label for="uploadFile" class="form-label">Upload Existing XML</label>
+              <input type="file" id="uploadFile" class="form-control" accept=".xml">
+            </div>
+          </div>
+          <!-- Panel 3: Apply Test URL -->
+          <div class="tab-pane fade" id="test-panel" role="tabpanel" aria-labelledby="test-tab">
+            <p>This feature will automatically set some server values from the provided URL. (It will not affect InCopy or Proxy settings.)</p>
+            <div class="mb-3">
+              <label for="testUrl" class="form-label">Test URL</label>
+              <input type="url" id="testUrl" class="form-control" placeholder="https://example.com:8443/K4Server/test/">
+            </div>
+            <button type="button" class="btn btn-secondary" id="applyTestUrlBtn">Apply Test URL</button>
+          </div>
+        </div>
+        
+        <!-- Collapsible Sections -->
+        <div class="accordion mt-4" id="configAccordion">
+          <!-- Servers Section -->
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingServers">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseServers" aria-expanded="false" aria-controls="collapseServers">
+                Servers
+              </button>
+            </h2>
+            <div id="collapseServers" class="accordion-collapse collapse" aria-labelledby="headingServers" data-bs-parent="#configAccordion">
+              <div class="accordion-body">
+                <div id="serversContainer">
+                  <!-- Server entries will be injected here -->
+                </div>
+                <button type="button" class="btn btn-secondary mb-3" id="addServerBtn">+ Add Server</button>
+              </div>
+            </div>
+          </div>
+          <!-- InCopy Print Settings Section -->
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingPrintSettings">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePrintSettings" aria-expanded="false" aria-controls="collapsePrintSettings">
+                InCopy Print Settings
+              </button>
+            </h2>
+            <div id="collapsePrintSettings" class="accordion-collapse collapse" aria-labelledby="headingPrintSettings" data-bs-parent="#configAccordion">
+              <div class="accordion-body">
+                <div class="mb-3">
+                  <label for="outputMode" class="form-label">Output Mode</label>
+                  <select id="outputMode" class="form-select">
+                    <option value="gray">gray</option>
+                    <option value="rgb">rgb</option>
+                    <option value="cmyk">cmyk</option>
+                    <option value="default" selected>default</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="imageData" class="form-label">Image Data</label>
+                  <select id="imageData" class="form-select">
+                    <option value="all">all</option>
+                    <option value="optimized">optimized</option>
+                    <option value="proxy">proxy</option>
+                    <option value="default" selected>default</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="pagePosition" class="form-label">Page Position</label>
+                  <select id="pagePosition" class="form-select">
+                    <option value="upperLeft">upperLeft</option>
+                    <option value="centerHorizontally">centerHorizontally</option>
+                    <option value="centerVertically">centerVertically</option>
+                    <option value="centered">centered</option>
+                    <option value="default" selected>default</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Proxy Settings Section -->
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingProxy">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProxy" aria-expanded="false" aria-controls="collapseProxy">
+                Proxy Settings
+              </button>
+            </h2>
+            <div id="collapseProxy" class="accordion-collapse collapse" aria-labelledby="headingProxy" data-bs-parent="#configAccordion">
+              <div class="accordion-body">
+                <div class="form-check mb-3">
+                  <input class="form-check-input" type="checkbox" id="includeProxy">
+                  <label class="form-check-label" for="includeProxy">
+                    Include Proxy
+                  </label>
+                </div>
+                <div class="mb-3">
+                  <label for="proxyUrl" class="form-label">Proxy URL</label>
+                  <input type="url" id="proxyUrl" class="form-control" placeholder="http://localhost:8585" disabled>
+                  <div class="form-text">
+                    If you want to use a proxy server to access K4 server, use the following setting to configure the connection to the proxy server.<br>
+                    The URL should look like this: &lt;Protocol&gt;://&lt;DNS name or IP address of the proxy server&gt;:&lt;Port&gt;<br>
+                    Example: <code>&lt;proxy url="http://localhost:8585"/&gt;</code>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div> <!-- End Accordion -->
+      </div>
+      
+      <!-- Right Column: XML Preview, Download/Share, and Installation Instructions -->
+      <div class="col-md-6">
+        <div class="xml-preview-container border p-3">
+          <button type="button" class="btn btn-sm btn-outline-secondary copy-button" id="copyBtn">Copy</button>
+          <pre><code id="xmlOutput" class="language-xml"></code></pre>
+        </div>
+        <div class="download-btn-container">
+          <button type="button" class="btn btn-primary" id="downloadBtn">Download K4 Config.xml</button>
+          <button type="button" class="btn btn-secondary" id="shareBtn">Share</button>
+        </div>
+        <!-- Installation Instructions Section -->
+        <div class="card mt-4">
+          <div class="card-body">
+            <h5 class="card-title">Installation Instructions</h5>
+            <p class="text-muted">Choose from the options below to see the correct file path for installation.</p>
+            <form id="installForm">
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Operating System</label>
+                <div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="os" id="osMac" value="mac" checked>
+                    <label class="form-check-label" for="osMac">macOS</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="os" id="osWin" value="win">
+                    <label class="form-check-label" for="osWin">Windows</label>
+                  </div>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Products</label>
+                <div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="productInDesign" value="InDesign" checked>
+                    <label class="form-check-label" for="productInDesign">InDesign</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="productInCopy" value="InCopy">
+                    <label class="form-check-label" for="productInCopy">InCopy</label>
+                  </div>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="versionSelect" class="form-label fw-semibold">Version</label>
+                <select id="versionSelect" class="form-select">
+                  <option value="2024">2024 (19.0)</option>
+                  <option value="2025">2025 (20.0)</option>
+                </select>
+              </div>
+              <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="useHomeVariable">
+                <label class="form-check-label" for="useHomeVariable">Use Home Folder Variable</label>
+              </div>
+            </form>
+            <h6>Installation Path(s):</h6>
+            <div id="installPaths">
+              <!-- Computed paths will be displayed here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> <!-- End row -->
+  </div> <!-- End container -->
+  
+  <!-- Bootstrap JS Bundle (with Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Prism JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-xml.min.js"></script>
+  
+  <script>
+    // --- Utility Functions for Validation ---
+    function isValidHostname(hostname) {
+      const regex = /^(?!:\/\/)([a-zA-Z0-9-_\.]+)$/;
+      return regex.test(hostname);
+    }
+    
+    function isValidPort(port) {
+      const num = Number(port);
+      return Number.isInteger(num) && num > 0 && num <= 65535;
+    }
+    
+    function isValidURL(url) {
+      try {
+        new URL(url);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+    
+    // --- Global Array for Server Objects ---
+    let servers = [];
+    
+    // --- Create a New Server Entry with Default or Provided Values ---
+    function createServerEntry(data = {}) {
+      const serverId = Date.now() + Math.random().toString(36).substring(2, 7);
+      const defaultData = {
+        name: 'example.com',
+        protocol: (servers.length === 0 ? 'https' : 'http'),
+        address: 'example.com-v15-k4.fluxcloud.us',
+        port: 8443,
+        path: '/K4Server/',
+        disabled: false
+      };
+      const serverData = Object.assign({}, defaultData, data);
+      servers.push({ id: serverId, ...serverData });
+      renderServers();
+    }
+    
+    // --- Remove a Server Entry by ID ---
+    function removeServerEntry(id) {
+      servers = servers.filter(s => s.id !== id);
+      renderServers();
+    }
+    
+    // --- Update a Specific Field for a Server ---
+    function updateServerField(id, field, value) {
+      const server = servers.find(s => s.id === id);
+      if (server) {
+        server[field] = value;
+        renderServers();
+      }
+    }
+    
+    // --- Render Server Entries in the Form ---
+    function renderServers() {
+      const container = document.getElementById('serversContainer');
+      container.innerHTML = '';
+      servers.forEach(server => {
+        const div = document.createElement('div');
+        div.className = 'card mb-2 p-2';
+        if (server.disabled) {
+          div.classList.add('server-disabled');
+        }
+        div.innerHTML = `
+          <div class="row g-2 align-items-center">
+            <div class="col-md-3">
+              <label class="form-label">Name</label>
+              <input type="text" class="form-control" value="${server.name}" data-field="name" data-id="${server.id}">
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Protocol</label>
+              <select class="form-select" data-field="protocol" data-id="${server.id}">
+                <option value="http" ${server.protocol === 'http' ? 'selected' : ''}>http</option>
+                <option value="https" ${server.protocol === 'https' ? 'selected' : ''}>https</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Address</label>
+              <input type="text" class="form-control" value="${server.address}" data-field="address" data-id="${server.id}">
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Port</label>
+              <input type="number" class="form-control" value="${server.port}" data-field="port" data-id="${server.id}">
+            </div>
+          </div>
+          <div class="row g-2 align-items-center mt-2">
+            <div class="col-md-6">
+              <label class="form-label">Path</label>
+              <input type="text" class="form-control" value="${server.path}" data-field="path" data-id="${server.id}">
+            </div>
+            <div class="col-md-3">
+              <div class="form-check mt-4">
+                <input class="form-check-input" type="checkbox" ${server.disabled ? 'checked' : ''} data-field="disabled" data-id="${server.id}">
+                <label class="form-check-label">Disabled</label>
+              </div>
+            </div>
+            <div class="col-md-3 text-end">
+              <button type="button" class="btn btn-danger btn-sm remove-server" data-id="${server.id}">&times;</button>
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+      addServerFieldListeners();
+      generateXml();
+    }
+    
+    // --- Add Event Listeners to Server Inputs and Remove Buttons ---
+    function addServerFieldListeners() {
+      const inputs = document.querySelectorAll('#serversContainer input, #serversContainer select');
+      inputs.forEach(input => {
+        input.addEventListener('change', (e) => {
+          const id = e.target.getAttribute('data-id');
+          const field = e.target.getAttribute('data-field');
+          let value = e.target.value;
+          if (field === 'port') {
+            value = Number(value);
+          }
+          if (e.target.type === 'checkbox') {
+            value = e.target.checked;
+          }
+          updateServerField(id, field, value);
+        });
+      });
+      
+      const removeBtns = document.querySelectorAll('.remove-server');
+      removeBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = e.target.getAttribute('data-id');
+          removeServerEntry(id);
+        });
+      });
+    }
+    
+    // --- Generate the XML String Based on Form Inputs ---
+    function generateXml() {
+      let xml = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n';
+      xml += '<config version="2">\n';
+      
+      // Servers
+      xml += '  <servers>\n';
+      servers.forEach(server => {
+        let serverLine = `    <server name="${server.name}" protocol="${server.protocol}" address="${server.address}" port="${server.port}" path="${server.path}" />\n`;
+        if (server.disabled) {
+          xml += `    <!--\n${serverLine}    -->\n`;
+        } else {
+          xml += serverLine;
+        }
+      });
+      xml += '  </servers>\n\n';
+      
+      // InCopyPrintSettings
+      const outputMode = document.getElementById('outputMode').value;
+      const imageData = document.getElementById('imageData').value;
+      const pagePosition = document.getElementById('pagePosition').value;
+      xml += `  <inCopyPrintSettings outputMode="${outputMode}" imageData="${imageData}" pagePosition="${pagePosition}" />\n\n`;
+      
+      // Proxy Settings
+      const includeProxy = document.getElementById('includeProxy').checked;
+      const proxyUrl = document.getElementById('proxyUrl').value.trim();
+      if (includeProxy) {
+        if (isValidURL(proxyUrl)) {
+          xml += `  <proxy url="${proxyUrl}" />\n`;
+        } else {
+          xml += `  <!-- Invalid proxy URL provided -->\n`;
+        }
+      } else {
+        xml += '  <!--\n';
+        xml += '    If you want to use a proxy server to access K4 server, use the following\n';
+        xml += '    setting to configure the connection to the proxy server.\n\n';
+        xml += '    The URL should look like this: <Protocol>://<DNS name or IP address of the proxy server>:<Port>\n\n';
+        xml += '    Example:\n';
+        xml += '    <proxy url="http://localhost:8585"/>\n';
+        xml += '  -->\n';
+      }
+      
+      xml += '</config>';
+      
+      const xmlOutput = document.getElementById('xmlOutput');
+      xmlOutput.textContent = xml;
+      Prism.highlightElement(xmlOutput);
+    }
+    
+    // --- Event Listeners for InCopyPrintSettings and Proxy Inputs ---
+    document.getElementById('outputMode').addEventListener('change', generateXml);
+    document.getElementById('imageData').addEventListener('change', generateXml);
+    document.getElementById('pagePosition').addEventListener('change', generateXml);
+    document.getElementById('includeProxy').addEventListener('change', function(e) {
+      document.getElementById('proxyUrl').disabled = !e.target.checked;
+      generateXml();
+    });
+    document.getElementById('proxyUrl').addEventListener('change', generateXml);
+    
+    // --- Add Server Button ---
+    document.getElementById('addServerBtn').addEventListener('click', function() {
+      createServerEntry({ name: '', protocol: 'http', address: '', port: 8443, path: '/K4Server/', disabled: false });
+    });
+    
+    // --- "New" Button Event ---
+    function resetForm() {
+      servers = [];
+      createServerEntry();
+      document.getElementById('outputMode').value = 'default';
+      document.getElementById('imageData').value = 'default';
+      document.getElementById('pagePosition').value = 'default';
+      document.getElementById('includeProxy').checked = false;
+      document.getElementById('proxyUrl').disabled = true;
+      document.getElementById('proxyUrl').value = '';
+      document.getElementById('testUrl').value = '';
+      generateXml();
+    }
+    document.getElementById('newBtn').addEventListener('click', resetForm);
+    
+    // --- Copy XML to Clipboard ---
+    document.getElementById('copyBtn').addEventListener('click', function() {
+      const xmlText = document.getElementById('xmlOutput').textContent;
+      navigator.clipboard.writeText(xmlText).then(() => {
+        alert('XML copied to clipboard!');
+      });
+    });
+    
+    // --- Download XML File ---
+    document.getElementById('downloadBtn').addEventListener('click', function() {
+      const xmlText = document.getElementById('xmlOutput').textContent;
+      const blob = new Blob([xmlText], { type: 'application/xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'K4 Config.xml';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+    
+    // --- Share Button: Generate a URL with Query Parameters and Copy It ---
+    document.getElementById('shareBtn').addEventListener('click', function() {
+      const params = new URLSearchParams();
+      // Share the first server's options (if any)
+      if (servers.length > 0) {
+        let server = servers[0];
+        params.set('server_name', server.name);
+        params.set('server_protocol', server.protocol);
+        params.set('server_address', server.address);
+        params.set('server_port', server.port);
+        params.set('server_path', server.path);
+        params.set('server_disabled', server.disabled);
+      }
+      // InCopyPrintSettings
+      params.set('outputMode', document.getElementById('outputMode').value);
+      params.set('imageData', document.getElementById('imageData').value);
+      params.set('pagePosition', document.getElementById('pagePosition').value);
+      // Proxy Settings
+      params.set('includeProxy', document.getElementById('includeProxy').checked ? "true" : "false");
+      if (document.getElementById('includeProxy').checked) {
+        params.set('proxyUrl', document.getElementById('proxyUrl').value);
+      }
+      // Test URL
+      if (document.getElementById('testUrl').value.trim() !== "") {
+        params.set('testUrl', document.getElementById('testUrl').value.trim());
+      }
+      // Installation Instructions
+      params.set('os', document.querySelector('input[name="os"]:checked').value);
+      if (document.getElementById('productInDesign').checked) {
+        params.set('productInDesign', "true");
+      }
+      if (document.getElementById('productInCopy').checked) {
+        params.set('productInCopy', "true");
+      }
+      params.set('versionSelect', document.getElementById('versionSelect').value);
+      params.set('useHomeVariable', document.getElementById('useHomeVariable').checked ? "true" : "false");
+      
+      // Construct full URL (base URL + query string)
+      const shareUrl = window.location.origin + window.location.pathname + "?" + params.toString();
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        alert("Share URL copied to clipboard:\n" + shareUrl);
+      });
+    });
+    
+    // --- Update Installation Paths Based on Selections ---
+    function updateInstallPaths() {
+      const os = document.querySelector('input[name="os"]:checked').value; // "mac" or "win"
+      let products = [];
+      if (document.getElementById('productInDesign').checked) {
+        products.push("InDesign");
+      }
+      if (document.getElementById('productInCopy').checked) {
+        products.push("InCopy");
+      }
+      const version = document.getElementById('versionSelect').value;
+      const useHome = document.getElementById('useHomeVariable').checked;
+      let pathsHTML = "";
+      
+      products.forEach(prod => {
+        let basePath = "";
+        if (os === "mac") {
+          basePath = useHome ? "$HOME" : "/Users/[user]";
+          if (prod === "InDesign") {
+            pathsHTML += `<p><strong>InDesign:</strong> ${basePath}/Library/Preferences/vjoon/K4/K4 Layout/${version}/</p>`;
+          }
+          if (prod === "InCopy") {
+            pathsHTML += `<p><strong>InCopy:</strong> ${basePath}/Library/Preferences/vjoon/K4/K4 Edit/${version}/</p>`;
+          }
+        } else {
+          basePath = useHome ? "%USERPROFILE%" : "\\Users\\[user]";
+          if (prod === "InDesign") {
+            pathsHTML += `<p><strong>InDesign:</strong> ${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Layout\\${version}\\</p>`;
+          }
+          if (prod === "InCopy") {
+            pathsHTML += `<p><strong>InCopy:</strong> ${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Edit\\${version}\\</p>`;
+          }
+        }
+      });
+      document.getElementById("installPaths").innerHTML = pathsHTML;
+    }
+    
+    // --- Event Listeners for Installation Instructions Controls ---
+    document.getElementById('osMac').addEventListener('change', updateInstallPaths);
+    document.getElementById('osWin').addEventListener('change', updateInstallPaths);
+    document.getElementById('productInDesign').addEventListener('change', updateInstallPaths);
+    document.getElementById('productInCopy').addEventListener('change', updateInstallPaths);
+    document.getElementById('versionSelect').addEventListener('change', updateInstallPaths);
+    document.getElementById('useHomeVariable').addEventListener('change', updateInstallPaths);
+    
+    // --- Load Values from URL Query Parameters, If Present ---
+    function loadFromQueryParams() {
+      const params = new URLSearchParams(window.location.search);
+      let hasServer = false;
+      if (params.has("server_name")) {
+        const name = params.get("server_name");
+        const protocol = params.get("server_protocol") || "http";
+        const address = params.get("server_address") || "";
+        const port = params.get("server_port") ? Number(params.get("server_port")) : 8443;
+        const path = params.get("server_path") || "/K4Server/";
+        const disabled = params.get("server_disabled") === "true";
+        createServerEntry({ name, protocol, address, port, path, disabled });
+        hasServer = true;
+      }
+      if (!hasServer) {
+        createServerEntry();
+      }
+      if (params.has("outputMode")) {
+        document.getElementById("outputMode").value = params.get("outputMode");
+      }
+      if (params.has("imageData")) {
+        document.getElementById("imageData").value = params.get("imageData");
+      }
+      if (params.has("pagePosition")) {
+        document.getElementById("pagePosition").value = params.get("pagePosition");
+      }
+      if (params.has("includeProxy") && params.get("includeProxy") === "true") {
+        document.getElementById("includeProxy").checked = true;
+        document.getElementById("proxyUrl").disabled = false;
+        if (params.has("proxyUrl")) {
+          document.getElementById("proxyUrl").value = params.get("proxyUrl");
+        }
+      }
+      if (params.has("testUrl")) {
+        document.getElementById("testUrl").value = params.get("testUrl");
+      }
+      generateXml();
+      updateInstallPaths();
+    }
+    
+    // --- Initialize Page ---
+    document.addEventListener('DOMContentLoaded', loadFromQueryParams);
+  </script>
+</body>
+</html>
+
