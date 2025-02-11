@@ -21,7 +21,7 @@ by changing values on the web page.
 
 ### Installing
 
-* The SPA is available for use [here](https://github.com/???)
+* The SPA is available for use [here](https://scottdunnflux.github.io/k4config-xml-maker/)
 * Alternatively, the file may be downloaded and opened in a browser, however this will break the "Share" feature.
 
 ### Using the K4 Config.xml Maker
