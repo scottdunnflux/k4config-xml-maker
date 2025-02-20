@@ -150,9 +150,7 @@
                   <label for="proxyUrl" class="form-label">Proxy URL</label>
                   <input type="url" id="proxyUrl" class="form-control" placeholder="http://localhost:8585" disabled>
                   <div class="form-text">
-                    If you want to use a proxy server to access K4 server, use the following setting to configure the connection to the proxy server.<br>
-                    The URL should look like this: &lt;Protocol&gt;://&lt;DNS name or IP address of the proxy server&gt;:&lt;Port&gt;<br>
-                    Example: <code>&lt;proxy url="http://localhost:8585"/&gt;</code>
+                    <code>&lt;proxy url="http://localhost:8585"/&gt;</code>
                   </div>
                 </div>
               </div>
@@ -401,10 +399,6 @@
         }
       } else {
         xml += '  <!--\n';
-        xml += '    If you want to use a proxy server to access K4 server, use the following\n';
-        xml += '    setting to configure the connection to the proxy server.\n\n';
-        xml += '    The URL should look like this: <Protocol>://<DNS name or IP address of the proxy server>:<Port>\n\n';
-        xml += '    Example:\n';
         xml += '    <proxy url="http://localhost:8585"/>\n';
         xml += '  -->\n';
       }
@@ -512,6 +506,71 @@
       });
     });
     
+    // --- Parse Test URL into fields ---
+    document.getElementById('applyTestUrlBtn').addEventListener('click', function() {
+      const testUrlInput = document.getElementById('testUrl');
+      const testUrlValue = testUrlInput.value.trim();
+
+      // Validate URL format
+      if (!isValidURL(testUrlValue)) {
+        alert("Invalid URL. Please enter a valid http or https URL.");
+        testUrlInput.classList.add("error");
+        return;
+      }
+      testUrlInput.classList.remove("error");
+
+      let urlObj;
+      try {
+        urlObj = new URL(testUrlValue);
+      } catch (e) {
+        alert("Invalid URL. Please enter a valid http or https URL.");
+        testUrlInput.classList.add("error");
+        return;
+      }
+      
+      // Ensure protocol is http or https
+      if (urlObj.protocol !== "http:" && urlObj.protocol !== "https:") {
+        alert("Only http or https URLs are allowed.");
+        testUrlInput.classList.add("error");
+        return;
+      }
+
+      // Extract protocol (without the colon), hostname, and port
+      const protocol = urlObj.protocol.slice(0, -1); // "http" or "https"
+      const address = urlObj.hostname;
+      let port = urlObj.port;
+      if (!port) {
+        port = (protocol === "https") ? 443 : 80;
+      }
+      
+      // Extract the path: the substring between the port and "test/"
+      let fullPath = urlObj.pathname; // e.g. "/K4ServerGIP/test/"
+      let testIndex = fullPath.indexOf("test/");
+      let path = "";
+      if (testIndex !== -1) {
+        path = fullPath.substring(0, testIndex);
+        // Ensure path ends with a slash
+        if (!path.endsWith("/")) {
+          path += "/";
+        }
+      } else {
+        // Fallback to the entire pathname if "test/" is not found
+        path = fullPath;
+      }
+
+      // Update the first server entry, or create one if none exists
+      if (servers.length === 0) {
+        createServerEntry({ name: address, protocol: protocol, address: address, port: Number(port), path: path });
+      } else {
+        servers[0].name = address;
+        servers[0].protocol = protocol;
+        servers[0].address = address;
+        servers[0].port = Number(port);
+        servers[0].path = path;
+        renderServers();
+      }
+    });
+
     // --- Update Installation Paths Based on Selections ---
     function updateInstallPaths() {
       const os = document.querySelector('input[name="os"]:checked').value; // "mac" or "win"
