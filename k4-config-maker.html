@@ -31,12 +31,16 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>The Amazing `K4 Config.xml` maker</h1>
-    <p class="text-muted">K4 solutions from Flux Consulting, Inc.—Trusted since 1996.</p>
+  <div class="container-fluid">
+    <h1><span style='font-family: monospace, Consolar, DejaVu Sans Mono, Lucida Console, Courier, "Courier New"; font-weight: bold;'>K4 ConfigSmith</span></h1>
+    <p class="text-muted">A solution by <i>Flux Consulting, Inc.</i> Est. 1996.</p>
+    <hr/>
     <div class="row">
       <!-- Left Column: Controls and Form -->
       <div class="col-md-6">
+        <h5 class="card-title">Craft your K4 settings</h5>
+        <br/>
+        <h6 class="card-title">Start here:</h6>
         <!-- Top 3-Panel Interface -->
         <ul class="nav nav-tabs" id="topTab" role="tablist">
           <li class="nav-item" role="presentation">
@@ -73,6 +77,8 @@
           </div>
         </div>
         
+        <br/>
+        <h6 class="card-title">Modify values here:</h6>
         <!-- Collapsible Sections -->
         <div class="accordion mt-4" id="configAccordion">
           <!-- Servers Section -->
@@ -162,6 +168,7 @@
       <!-- Right Column: XML Preview, Download/Share, and Installation Instructions -->
       <div class="col-md-6">
         <div class="xml-preview-container border p-3">
+          <h5 class="card-title">K4 Config.xml</h5>
           <button type="button" class="btn btn-sm btn-outline-secondary copy-button" id="copyBtn">Copy</button>
           <pre><code id="xmlOutput" class="language-xml"></code></pre>
         </div>
@@ -217,6 +224,7 @@
             <div id="installPaths">
               <!-- Computed paths will be displayed here -->
             </div>
+            <p>Make sure the file placed in this directory is named "K4 Config.xml"</p>
           </div>
         </div>
       </div>
@@ -259,7 +267,7 @@
       const defaultData = {
         name: 'example.com',
         protocol: (servers.length === 0 ? 'https' : 'http'),
-        address: 'example.com-v15-k4.fluxcloud.us',
+        address: 'example.com',
         port: 8443,
         path: '/K4Server/',
         disabled: false
@@ -588,20 +596,20 @@
       products.forEach(prod => {
         let basePath = "";
         if (os === "mac") {
-          basePath = useHome ? "$HOME" : "/Users/[user]";
+          basePath = useHome ? "~" : "/Users/[user]";
           if (prod === "InDesign") {
-            pathsHTML += `<p><strong>InDesign:</strong> ${basePath}/Library/Preferences/vjoon/K4/K4 Layout/${version}/</p>`;
+            pathsHTML += `<p><strong>InDesign:</strong><br/> ${basePath}/Library/Preferences/vjoon/K4/K4 Layout/${version}/</p>`;
           }
           if (prod === "InCopy") {
-            pathsHTML += `<p><strong>InCopy:</strong> ${basePath}/Library/Preferences/vjoon/K4/K4 Edit/${version}/</p>`;
+            pathsHTML += `<p><strong>InCopy:</strong><br/> ${basePath}/Library/Preferences/vjoon/K4/K4 Edit/${version}/</p>`;
           }
         } else {
           basePath = useHome ? "%USERPROFILE%" : "\\Users\\[user]";
           if (prod === "InDesign") {
-            pathsHTML += `<p><strong>InDesign:</strong> ${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Layout\\${version}\\</p>`;
+            pathsHTML += `<p><strong>InDesign:</strong><br/> ${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Layout\\${version}\\</p>`;
           }
           if (prod === "InCopy") {
-            pathsHTML += `<p><strong>InCopy:</strong> ${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Edit\\${version}\\</p>`;
+            pathsHTML += `<p><strong>InCopy:</strong><br/> ${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Edit\\${version}\\</p>`;
           }
         }
       });
