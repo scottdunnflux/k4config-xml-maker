@@ -31,12 +31,16 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>The Amazing `K4 Config.xml` maker</h1>
-    <p class="text-muted">K4 solutions from Flux Consulting, Inc.—Trusted since 1996.</p>
+  <div class="container-fluid">
+    <h1><span style='font-family: monospace, Consolar, DejaVu Sans Mono, Lucida Console, Courier, "Courier New"; font-weight: bold;'>K4 ConfigSmith</span></h1>
+    <p class="text-muted">A solution by <i>Flux Consulting, Inc.</i> Est. 1996.</p>
+    <hr/>
     <div class="row">
       <!-- Left Column: Controls and Form -->
       <div class="col-md-6">
+        <h5 class="card-title">Craft your K4 settings</h5>
+        <br/>
+        <h6 class="card-title">Start here:</h6>
         <!-- Top 3-Panel Interface -->
         <ul class="nav nav-tabs" id="topTab" role="tablist">
           <li class="nav-item" role="presentation">
@@ -73,6 +77,8 @@
           </div>
         </div>
         
+        <br/>
+        <h6 class="card-title">Modify values here:</h6>
         <!-- Collapsible Sections -->
         <div class="accordion mt-4" id="configAccordion">
           <!-- Servers Section -->
@@ -150,9 +156,7 @@
                   <label for="proxyUrl" class="form-label">Proxy URL</label>
                   <input type="url" id="proxyUrl" class="form-control" placeholder="http://localhost:8585" disabled>
                   <div class="form-text">
-                    If you want to use a proxy server to access K4 server, use the following setting to configure the connection to the proxy server.<br>
-                    The URL should look like this: &lt;Protocol&gt;://&lt;DNS name or IP address of the proxy server&gt;:&lt;Port&gt;<br>
-                    Example: <code>&lt;proxy url="http://localhost:8585"/&gt;</code>
+                    <code>&lt;proxy url="http://localhost:8585"/&gt;</code>
                   </div>
                 </div>
               </div>
@@ -164,6 +168,7 @@
       <!-- Right Column: XML Preview, Download/Share, and Installation Instructions -->
       <div class="col-md-6">
         <div class="xml-preview-container border p-3">
+          <h5 class="card-title">K4 Config.xml</h5>
           <button type="button" class="btn btn-sm btn-outline-secondary copy-button" id="copyBtn">Copy</button>
           <pre><code id="xmlOutput" class="language-xml"></code></pre>
         </div>
@@ -219,6 +224,7 @@
             <div id="installPaths">
               <!-- Computed paths will be displayed here -->
             </div>
+            <p>Make sure the file placed in this directory is named "K4 Config.xml"</p>
           </div>
         </div>
       </div>
@@ -261,7 +267,7 @@
       const defaultData = {
         name: 'example.com',
         protocol: (servers.length === 0 ? 'https' : 'http'),
-        address: 'example.com-v15-k4.fluxcloud.us',
+        address: 'example.com',
         port: 8443,
         path: '/K4Server/',
         disabled: false
@@ -401,10 +407,6 @@
         }
       } else {
         xml += '  <!--\n';
-        xml += '    If you want to use a proxy server to access K4 server, use the following\n';
-        xml += '    setting to configure the connection to the proxy server.\n\n';
-        xml += '    The URL should look like this: <Protocol>://<DNS name or IP address of the proxy server>:<Port>\n\n';
-        xml += '    Example:\n';
         xml += '    <proxy url="http://localhost:8585"/>\n';
         xml += '  -->\n';
       }
@@ -512,6 +514,71 @@
       });
     });
     
+    // --- Parse Test URL into fields ---
+    document.getElementById('applyTestUrlBtn').addEventListener('click', function() {
+      const testUrlInput = document.getElementById('testUrl');
+      const testUrlValue = testUrlInput.value.trim();
+
+      // Validate URL format
+      if (!isValidURL(testUrlValue)) {
+        alert("Invalid URL. Please enter a valid http or https URL.");
+        testUrlInput.classList.add("error");
+        return;
+      }
+      testUrlInput.classList.remove("error");
+
+      let urlObj;
+      try {
+        urlObj = new URL(testUrlValue);
+      } catch (e) {
+        alert("Invalid URL. Please enter a valid http or https URL.");
+        testUrlInput.classList.add("error");
+        return;
+      }
+      
+      // Ensure protocol is http or https
+      if (urlObj.protocol !== "http:" && urlObj.protocol !== "https:") {
+        alert("Only http or https URLs are allowed.");
+        testUrlInput.classList.add("error");
+        return;
+      }
+
+      // Extract protocol (without the colon), hostname, and port
+      const protocol = urlObj.protocol.slice(0, -1); // "http" or "https"
+      const address = urlObj.hostname;
+      let port = urlObj.port;
+      if (!port) {
+        port = (protocol === "https") ? 443 : 80;
+      }
+      
+      // Extract the path: the substring between the port and "test/"
+      let fullPath = urlObj.pathname; // e.g. "/K4ServerGIP/test/"
+      let testIndex = fullPath.indexOf("test/");
+      let path = "";
+      if (testIndex !== -1) {
+        path = fullPath.substring(0, testIndex);
+        // Ensure path ends with a slash
+        if (!path.endsWith("/")) {
+          path += "/";
+        }
+      } else {
+        // Fallback to the entire pathname if "test/" is not found
+        path = fullPath;
+      }
+
+      // Update the first server entry, or create one if none exists
+      if (servers.length === 0) {
+        createServerEntry({ name: address, protocol: protocol, address: address, port: Number(port), path: path });
+      } else {
+        servers[0].name = address;
+        servers[0].protocol = protocol;
+        servers[0].address = address;
+        servers[0].port = Number(port);
+        servers[0].path = path;
+        renderServers();
+      }
+    });
+
     // --- Update Installation Paths Based on Selections ---
     function updateInstallPaths() {
       const os = document.querySelector('input[name="os"]:checked').value; // "mac" or "win"
@@ -529,20 +596,20 @@
       products.forEach(prod => {
         let basePath = "";
         if (os === "mac") {
-          basePath = useHome ? "$HOME" : "/Users/[user]";
+          basePath = useHome ? "~" : "/Users/[user]";
           if (prod === "InDesign") {
-            pathsHTML += `<p><strong>InDesign:</strong> ${basePath}/Library/Preferences/vjoon/K4/K4 Layout/${version}/</p>`;
+            pathsHTML += `<p><strong>InDesign:</strong><br/> ${basePath}/Library/Preferences/vjoon/K4/K4 Layout/${version}/</p>`;
           }
           if (prod === "InCopy") {
-            pathsHTML += `<p><strong>InCopy:</strong> ${basePath}/Library/Preferences/vjoon/K4/K4 Edit/${version}/</p>`;
+            pathsHTML += `<p><strong>InCopy:</strong><br/> ${basePath}/Library/Preferences/vjoon/K4/K4 Edit/${version}/</p>`;
           }
         } else {
           basePath = useHome ? "%USERPROFILE%" : "\\Users\\[user]";
           if (prod === "InDesign") {
-            pathsHTML += `<p><strong>InDesign:</strong> ${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Layout\\${version}\\</p>`;
+            pathsHTML += `<p><strong>InDesign:</strong><br/> ${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Layout\\${version}\\</p>`;
           }
           if (prod === "InCopy") {
-            pathsHTML += `<p><strong>InCopy:</strong> ${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Edit\\${version}\\</p>`;
+            pathsHTML += `<p><strong>InCopy:</strong><br/> ${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Edit\\${version}\\</p>`;
           }
         }
       });
