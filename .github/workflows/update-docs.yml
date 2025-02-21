@@ -1,0 +1,26 @@
+name: Update GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "k4-config-maker.html"
+
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Copy and rename file
+        run: |
+          git fetch origin docs
+          git checkout docs
+          git checkout main -- k4-config-maker.html
+          mv k4-config-maker.html index.html
+          git add index.html
+          git commit -m "Update index.html from main"
+          git push origin docs
+
