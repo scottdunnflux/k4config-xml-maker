@@ -428,36 +428,6 @@
       Prism.highlightElement(xmlOutput);
     }
     
-    // --- Event Listeners for InCopyPrintSettings and Proxy Inputs ---
-    document.getElementById('outputMode').addEventListener('change', generateXml);
-    document.getElementById('imageData').addEventListener('change', generateXml);
-    document.getElementById('pagePosition').addEventListener('change', generateXml);
-    document.getElementById('includeProxy').addEventListener('change', function(e) {
-      document.getElementById('proxyUrl').disabled = !e.target.checked;
-      generateXml();
-    });
-    document.getElementById('proxyUrl').addEventListener('change', generateXml);
-    
-    // --- Add Server Button ---
-    document.getElementById('addServerBtn').addEventListener('click', function() {
-      createServerEntry({ name: '', protocol: 'http', address: '', port: 8443, path: '/K4Server/', disabled: false });
-    });
-    
-    // --- "New" Button Event ---
-    function resetForm() {
-      servers = [];
-      createServerEntry();
-      document.getElementById('outputMode').value = 'default';
-      document.getElementById('imageData').value = 'default';
-      document.getElementById('pagePosition').value = 'default';
-      document.getElementById('includeProxy').checked = false;
-      document.getElementById('proxyUrl').disabled = true;
-      document.getElementById('proxyUrl').value = '';
-      document.getElementById('testUrl').value = '';
-      generateXml();
-    }
-    document.getElementById('newBtn').addEventListener('click', resetForm);
-    
     // --- Copy XML to Clipboard ---
     document.getElementById('copyBtn').addEventListener('click', function() {
       const xmlText = document.getElementById('xmlOutput').textContent;
@@ -588,7 +558,7 @@
         renderServers();
       }
     });
-
+    
     // --- Update Installation Paths Based on Selections ---
     function updateInstallPaths() {
       const os = document.querySelector('input[name="os"]:checked').value; // "mac" or "win"
@@ -608,22 +578,36 @@
         if (os === "mac") {
           basePath = useHome ? "~" : "/Users/[user]";
           if (prod === "InDesign") {
-            pathsHTML += `<p><strong>InDesign:</strong><br/><code> ${basePath}/Library/Preferences/vjoon/K4/K4 Layout/${version}/</code></p>`;
+            pathsHTML += `<p><strong>InDesign:</strong><br/><code>${basePath}/Library/Preferences/vjoon/K4/K4 Layout/${version}/</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button></p>`;
           }
           if (prod === "InCopy") {
-            pathsHTML += `<p><strong>InCopy:</strong><br/><code> ${basePath}/Library/Preferences/vjoon/K4/K4 Edit/${version}/</code></p>`;
+            pathsHTML += `<p><strong>InCopy:</strong><br/><code>${basePath}/Library/Preferences/vjoon/K4/K4 Edit/${version}/</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button></p>`;
           }
         } else {
           basePath = useHome ? "%USERPROFILE%" : "\\Users\\[user]";
           if (prod === "InDesign") {
-            pathsHTML += `<p><strong>InDesign:</strong><br/><code> ${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Layout\\${version}\\</code></p>`;
+            pathsHTML += `<p><strong>InDesign:</strong><br/><code>${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Layout\\${version}\\</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button></p>`;
           }
           if (prod === "InCopy") {
-            pathsHTML += `<p><strong>InCopy:</strong><br/><code> ${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Edit\\${version}\\</code></p>`;
+            pathsHTML += `<p><strong>InCopy:</strong><br/><code>${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Edit\\${version}\\</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button></p>`;
           }
         }
       });
       document.getElementById("installPaths").innerHTML = pathsHTML;
+    }
+    
+    // --- Function to Copy Installation Path from <code> Element ---
+    function copyPath(button) {
+      const codeElem = button.previousElementSibling;
+      if (codeElem && codeElem.tagName.toLowerCase() === 'code') {
+        navigator.clipboard.writeText(codeElem.textContent.trim())
+          .then(() => {
+            alert("Path copied to clipboard!");
+          })
+          .catch(err => {
+            console.error("Error copying text: ", err);
+          });
+      }
     }
     
     // --- Event Listeners for Installation Instructions Controls ---
