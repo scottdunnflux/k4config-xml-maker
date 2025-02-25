@@ -38,10 +38,10 @@
     <div class="row">
       <!-- Left Column: Controls and Form -->
       <div class="col-md-6">
-        <h5 class="card-title">Craft your K4 settings</h5>
+        <h5 class="card-title">Craft your K4 Client Configuration</h5>
         <br/>
         <h6 class="card-title" style='margin-bottom: 3px;'><span style='font-size: 36px; vertical-align:middle;'>❶</span><span style="vertical-align: middle;"> Initialize Your Setup</span></h6>
-        <!-- Top 3-Panel Interface -->
+        <!-- Top 4-Panel Interface -->
         <ul class="nav nav-tabs" id="topTab" role="tablist">
           <li class="nav-item" role="presentation">
             <button class="nav-link active" id="new-tab" data-bs-toggle="tab" data-bs-target="#new-panel" type="button" role="tab">New</button>
@@ -51,6 +51,10 @@
           </li>
           <li class="nav-item" role="presentation">
             <button class="nav-link" id="test-tab" data-bs-toggle="tab" data-bs-target="#test-panel" type="button" role="tab">Apply Test URL</button>
+          </li>
+          <!-- New Shared Config Tab (initially hidden) -->
+          <li class="nav-item d-none" role="presentation" id="shared-tab-li">
+            <button class="nav-link" id="shared-tab" data-bs-toggle="tab" data-bs-target="#shared-panel" type="button" role="tab">Shared Config</button>
           </li>
         </ul>
         <div class="tab-content border-bottom border-start border-end p-3" id="topTabContent">
@@ -74,6 +78,10 @@
               <input type="url" id="testUrl" class="form-control" placeholder="https://example.com:8443/K4Server/test/">
             </div>
             <button type="button" class="btn btn-secondary" id="applyTestUrlBtn">Apply Test URL</button>
+          </div>
+          <!-- Panel 4: Shared Config (added when URL data is detected) -->
+          <div class="tab-pane fade" id="shared-panel" role="tabpanel" aria-labelledby="shared-tab">
+            <p>Setup Initialized from data in URL. Review shared settings in the next section.</p>
           </div>
         </div>
         
@@ -167,6 +175,7 @@
       
       <!-- Right Column: XML Preview, Download/Share, and Installation Instructions -->
       <div class="col-md-6">
+        <h6 class="card-title"><span style='font-size: 36px; vertical-align:middle;'>❸</span><span style='vertical-align: middle;'> Get the config</span></h6>
         <div class="xml-preview-container border p-3">
           <h5 class="card-title">K4 Config.xml</h5>
           <button type="button" class="btn btn-sm btn-outline-secondary copy-button" id="copyBtn">Copy</button>
@@ -177,10 +186,11 @@
           <button type="button" class="btn btn-secondary" id="shareBtn">Share</button>
         </div>
         <!-- Installation Instructions Section -->
+        <h6 class="card-title"><span style='font-size: 36px; vertical-align:middle;'>❹</span><span style='vertical-align: middle;'> Install it</span></h6>
         <div class="card mt-4">
           <div class="card-body">
             <h5 class="card-title">Installation Instructions</h5>
-            <p class="text-muted">Choose from the options below to see the correct file path for installation.</p>
+            <p class="text-muted">Choose from the options below to see the correct file path for installation. Or store the file on the computer and select it when prompted by the vjoon K4 Client installer.</p>
             <form id="installForm">
               <div class="mb-3">
                 <label class="form-label fw-semibold">Operating System</label>
@@ -211,12 +221,12 @@
               <div class="mb-3">
                 <label for="versionSelect" class="form-label fw-semibold">Version</label>
                 <select id="versionSelect" class="form-select">
-                  <option value="2024">2024 (19.0)</option>
-                  <option value="2025">2025 (20.0)</option>
+                  <option value="2024">2024 (19.X)</option>
+                  <option value="2025">2025 (20.X)</option>
                 </select>
               </div>
               <div class="mb-3 form-check">
-                <input type="checkbox" class="form-check-input" id="useHomeVariable">
+                <input type="checkbox" class="form-check-input" id="useHomeVariable" checked="true">
                 <label class="form-check-label" for="useHomeVariable">Use Home Folder Variable</label>
               </div>
             </form>
@@ -224,7 +234,7 @@
             <div id="installPaths">
               <!-- Computed paths will be displayed here -->
             </div>
-            <p>Make sure the file placed in this directory is named "K4 Config.xml"</p>
+            <p>Make sure the file is named <code>K4 Config.xml</code></p>
           </div>
         </div>
       </div>
@@ -418,36 +428,6 @@
       Prism.highlightElement(xmlOutput);
     }
     
-    // --- Event Listeners for InCopyPrintSettings and Proxy Inputs ---
-    document.getElementById('outputMode').addEventListener('change', generateXml);
-    document.getElementById('imageData').addEventListener('change', generateXml);
-    document.getElementById('pagePosition').addEventListener('change', generateXml);
-    document.getElementById('includeProxy').addEventListener('change', function(e) {
-      document.getElementById('proxyUrl').disabled = !e.target.checked;
-      generateXml();
-    });
-    document.getElementById('proxyUrl').addEventListener('change', generateXml);
-    
-    // --- Add Server Button ---
-    document.getElementById('addServerBtn').addEventListener('click', function() {
-      createServerEntry({ name: '', protocol: 'http', address: '', port: 8443, path: '/K4Server/', disabled: false });
-    });
-    
-    // --- "New" Button Event ---
-    function resetForm() {
-      servers = [];
-      createServerEntry();
-      document.getElementById('outputMode').value = 'default';
-      document.getElementById('imageData').value = 'default';
-      document.getElementById('pagePosition').value = 'default';
-      document.getElementById('includeProxy').checked = false;
-      document.getElementById('proxyUrl').disabled = true;
-      document.getElementById('proxyUrl').value = '';
-      document.getElementById('testUrl').value = '';
-      generateXml();
-    }
-    document.getElementById('newBtn').addEventListener('click', resetForm);
-    
     // --- Copy XML to Clipboard ---
     document.getElementById('copyBtn').addEventListener('click', function() {
       const xmlText = document.getElementById('xmlOutput').textContent;
@@ -578,7 +558,7 @@
         renderServers();
       }
     });
-
+    
     // --- Update Installation Paths Based on Selections ---
     function updateInstallPaths() {
       const os = document.querySelector('input[name="os"]:checked').value; // "mac" or "win"
@@ -598,22 +578,36 @@
         if (os === "mac") {
           basePath = useHome ? "~" : "/Users/[user]";
           if (prod === "InDesign") {
-            pathsHTML += `<p><strong>InDesign:</strong><br/> ${basePath}/Library/Preferences/vjoon/K4/K4 Layout/${version}/</p>`;
+            pathsHTML += `<p><strong>InDesign:</strong><br/><code>${basePath}/Library/Preferences/vjoon/K4/K4 Layout/${version}/</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button></p>`;
           }
           if (prod === "InCopy") {
-            pathsHTML += `<p><strong>InCopy:</strong><br/> ${basePath}/Library/Preferences/vjoon/K4/K4 Edit/${version}/</p>`;
+            pathsHTML += `<p><strong>InCopy:</strong><br/><code>${basePath}/Library/Preferences/vjoon/K4/K4 Edit/${version}/</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button></p>`;
           }
         } else {
           basePath = useHome ? "%USERPROFILE%" : "\\Users\\[user]";
           if (prod === "InDesign") {
-            pathsHTML += `<p><strong>InDesign:</strong><br/> ${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Layout\\${version}\\</p>`;
+            pathsHTML += `<p><strong>InDesign:</strong><br/><code>${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Layout\\${version}\\</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button></p>`;
           }
           if (prod === "InCopy") {
-            pathsHTML += `<p><strong>InCopy:</strong><br/> ${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Edit\\${version}\\</p>`;
+            pathsHTML += `<p><strong>InCopy:</strong><br/><code>${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Edit\\${version}\\</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button></p>`;
           }
         }
       });
       document.getElementById("installPaths").innerHTML = pathsHTML;
+    }
+    
+    // --- Function to Copy Installation Path from <code> Element ---
+    function copyPath(button) {
+      const codeElem = button.previousElementSibling;
+      if (codeElem && codeElem.tagName.toLowerCase() === 'code') {
+        navigator.clipboard.writeText(codeElem.textContent.trim())
+          .then(() => {
+            alert("Path copied to clipboard!");
+          })
+          .catch(err => {
+            console.error("Error copying text: ", err);
+          });
+      }
     }
     
     // --- Event Listeners for Installation Instructions Controls ---
@@ -662,6 +656,19 @@
       }
       generateXml();
       updateInstallPaths();
+      
+      // Check if any expected URL parameter exists and unhide the Shared Config tab if so
+      const expectedKeys = ["server_name", "outputMode", "includeProxy", "testUrl"];
+      let hasUrlData = expectedKeys.some(key => params.has(key));
+      if (hasUrlData) {
+        const sharedTabLi = document.getElementById("shared-tab-li");
+        if (sharedTabLi) {
+          sharedTabLi.classList.remove("d-none");
+          // Auto-activate the Shared Config tab
+          var sharedTab = new bootstrap.Tab(document.getElementById('shared-tab'));
+          sharedTab.show();
+        }
+      }
     }
     
     // --- Initialize Page ---
