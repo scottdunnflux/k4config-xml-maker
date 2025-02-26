@@ -429,15 +429,15 @@
     }
     
     // --- Copy XML to Clipboard ---
-    document.getElementById('copyBtn').addEventListener('click', function() {
+    function copyXml() {
       const xmlText = document.getElementById('xmlOutput').textContent;
       navigator.clipboard.writeText(xmlText).then(() => {
         alert('XML copied to clipboard!');
       });
-    });
+    }
     
     // --- Download XML File ---
-    document.getElementById('downloadBtn').addEventListener('click', function() {
+    function downloadXml() {
       const xmlText = document.getElementById('xmlOutput').textContent;
       const blob = new Blob([xmlText], { type: 'application/xml' });
       const url = URL.createObjectURL(blob);
@@ -448,10 +448,10 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    });
+    }
     
     // --- Share Button: Generate a URL with Query Parameters and Copy It ---
-    document.getElementById('shareBtn').addEventListener('click', function() {
+    function shareConfig() {
       const params = new URLSearchParams();
       // Share the first server's options (if any)
       if (servers.length > 0) {
@@ -487,26 +487,22 @@
       params.set('versionSelect', document.getElementById('versionSelect').value);
       params.set('useHomeVariable', document.getElementById('useHomeVariable').checked ? "true" : "false");
       
-      // Construct full URL (base URL + query string)
       const shareUrl = window.location.origin + window.location.pathname + "?" + params.toString();
       navigator.clipboard.writeText(shareUrl).then(() => {
         alert("Share URL copied to clipboard:\n" + shareUrl);
       });
-    });
+    }
     
-    // --- Parse Test URL into fields ---
-    document.getElementById('applyTestUrlBtn').addEventListener('click', function() {
+    // --- Parse Test URL into Fields ---
+    function applyTestUrl() {
       const testUrlInput = document.getElementById('testUrl');
       const testUrlValue = testUrlInput.value.trim();
-
-      // Validate URL format
       if (!isValidURL(testUrlValue)) {
         alert("Invalid URL. Please enter a valid http or https URL.");
         testUrlInput.classList.add("error");
         return;
       }
       testUrlInput.classList.remove("error");
-
       let urlObj;
       try {
         urlObj = new URL(testUrlValue);
@@ -515,38 +511,28 @@
         testUrlInput.classList.add("error");
         return;
       }
-      
-      // Ensure protocol is http or https
       if (urlObj.protocol !== "http:" && urlObj.protocol !== "https:") {
         alert("Only http or https URLs are allowed.");
         testUrlInput.classList.add("error");
         return;
       }
-
-      // Extract protocol (without the colon), hostname, and port
-      const protocol = urlObj.protocol.slice(0, -1); // "http" or "https"
+      const protocol = urlObj.protocol.slice(0, -1);
       const address = urlObj.hostname;
       let port = urlObj.port;
       if (!port) {
         port = (protocol === "https") ? 443 : 80;
       }
-      
-      // Extract the path: the substring between the port and "test/"
-      let fullPath = urlObj.pathname; // e.g. "/K4ServerGIP/test/"
+      let fullPath = urlObj.pathname;
       let testIndex = fullPath.indexOf("test/");
       let path = "";
       if (testIndex !== -1) {
         path = fullPath.substring(0, testIndex);
-        // Ensure path ends with a slash
         if (!path.endsWith("/")) {
           path += "/";
         }
       } else {
-        // Fallback to the entire pathname if "test/" is not found
         path = fullPath;
       }
-
-      // Update the first server entry, or create one if none exists
       if (servers.length === 0) {
         createServerEntry({ name: address, protocol: protocol, address: address, port: Number(port), path: path });
       } else {
@@ -557,11 +543,11 @@
         servers[0].path = path;
         renderServers();
       }
-    });
+    }
     
     // --- Update Installation Paths Based on Selections ---
     function updateInstallPaths() {
-      const os = document.querySelector('input[name="os"]:checked').value; // "mac" or "win"
+      const os = document.querySelector('input[name="os"]:checked').value;
       let products = [];
       if (document.getElementById('productInDesign').checked) {
         products.push("InDesign");
@@ -572,7 +558,6 @@
       const version = document.getElementById('versionSelect').value;
       const useHome = document.getElementById('useHomeVariable').checked;
       let pathsHTML = "";
-      
       products.forEach(prod => {
         let basePath = "";
         if (os === "mac") {
@@ -610,13 +595,19 @@
       }
     }
     
-    // --- Event Listeners for Installation Instructions Controls ---
-    document.getElementById('osMac').addEventListener('change', updateInstallPaths);
-    document.getElementById('osWin').addEventListener('change', updateInstallPaths);
-    document.getElementById('productInDesign').addEventListener('change', updateInstallPaths);
-    document.getElementById('productInCopy').addEventListener('change', updateInstallPaths);
-    document.getElementById('versionSelect').addEventListener('change', updateInstallPaths);
-    document.getElementById('useHomeVariable').addEventListener('change', updateInstallPaths);
+    // --- Reset Form Function ---
+    function resetForm() {
+      servers = [];
+      createServerEntry();
+      document.getElementById('outputMode').value = 'default';
+      document.getElementById('imageData').value = 'default';
+      document.getElementById('pagePosition').value = 'default';
+      document.getElementById('includeProxy').checked = false;
+      document.getElementById('proxyUrl').disabled = true;
+      document.getElementById('proxyUrl').value = '';
+      document.getElementById('testUrl').value = '';
+      generateXml();
+    }
     
     // --- Load Values from URL Query Parameters, If Present ---
     function loadFromQueryParams() {
@@ -657,22 +648,151 @@
       generateXml();
       updateInstallPaths();
       
-      // Check if any expected URL parameter exists and unhide the Shared Config tab if so
+      // Unhide and activate the Shared Config tab if any expected URL parameter is present.
       const expectedKeys = ["server_name", "outputMode", "includeProxy", "testUrl"];
-      let hasUrlData = expectedKeys.some(key => params.has(key));
-      if (hasUrlData) {
+      if (expectedKeys.some(key => params.has(key))) {
         const sharedTabLi = document.getElementById("shared-tab-li");
         if (sharedTabLi) {
           sharedTabLi.classList.remove("d-none");
-          // Auto-activate the Shared Config tab
           var sharedTab = new bootstrap.Tab(document.getElementById('shared-tab'));
           sharedTab.show();
         }
       }
     }
     
-    // --- Initialize Page ---
-    document.addEventListener('DOMContentLoaded', loadFromQueryParams);
+    // --- File Upload Processing ---
+    function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const xmlText = evt.target.result;
+        let parser = new DOMParser();
+        let xmlDoc = parser.parseFromString(xmlText, "application/xml");
+        
+        // Process Servers
+        const serversNode = xmlDoc.getElementsByTagName("servers")[0];
+        let loadedServers = [];
+        if (serversNode) {
+          for (let i = 0; i < serversNode.childNodes.length; i++) {
+            let child = serversNode.childNodes[i];
+            if (child.nodeType === Node.ELEMENT_NODE && child.tagName === "server") {
+              let s = {
+                name: child.getAttribute("name") || '',
+                protocol: child.getAttribute("protocol") || '',
+                address: child.getAttribute("address") || '',
+                port: Number(child.getAttribute("port") || 8443),
+                path: child.getAttribute("path") || '',
+                disabled: false
+              };
+              loadedServers.push(s);
+            } else if (child.nodeType === Node.COMMENT_NODE) {
+              // Try to parse commented-out server entries (disabled servers)
+              let tempDoc = parser.parseFromString("<wrapper>" + child.textContent + "</wrapper>", "application/xml");
+              let commentedServers = tempDoc.getElementsByTagName("server");
+              for (let j = 0; j < commentedServers.length; j++) {
+                let s = {
+                  name: commentedServers[j].getAttribute("name") || '',
+                  protocol: commentedServers[j].getAttribute("protocol") || '',
+                  address: commentedServers[j].getAttribute("address") || '',
+                  port: Number(commentedServers[j].getAttribute("port") || 8443),
+                  path: commentedServers[j].getAttribute("path") || '',
+                  disabled: true
+                };
+                loadedServers.push(s);
+              }
+            }
+          }
+        }
+        // Replace current servers with those loaded from the file.
+        servers = [];
+        loadedServers.forEach(s => {
+          const serverId = Date.now() + Math.random().toString(36).substring(2, 7);
+          servers.push({ id: serverId, ...s });
+        });
+        renderServers();
+        
+        // Process InCopy Print Settings
+        const inCopyPrintSettings = xmlDoc.getElementsByTagName("inCopyPrintSettings")[0];
+        if (inCopyPrintSettings) {
+          const outputMode = inCopyPrintSettings.getAttribute("outputMode");
+          if (outputMode) {
+            document.getElementById("outputMode").value = outputMode;
+          }
+          const imageData = inCopyPrintSettings.getAttribute("imageData");
+          if (imageData) {
+            document.getElementById("imageData").value = imageData;
+          }
+          const pagePosition = inCopyPrintSettings.getAttribute("pagePosition");
+          if (pagePosition) {
+            document.getElementById("pagePosition").value = pagePosition;
+          }
+        }
+        
+        // Process Proxy Settings
+        const proxy = xmlDoc.getElementsByTagName("proxy")[0];
+        if (proxy) {
+          const proxyUrl = proxy.getAttribute("url");
+          if (proxyUrl && isValidURL(proxyUrl)) {
+            document.getElementById("includeProxy").checked = true;
+            document.getElementById("proxyUrl").disabled = false;
+            document.getElementById("proxyUrl").value = proxyUrl;
+          } else {
+            document.getElementById("includeProxy").checked = false;
+            document.getElementById("proxyUrl").disabled = true;
+            document.getElementById("proxyUrl").value = '';
+          }
+        } else {
+          document.getElementById("includeProxy").checked = false;
+          document.getElementById("proxyUrl").disabled = true;
+          document.getElementById("proxyUrl").value = '';
+        }
+        
+        generateXml();
+        updateInstallPaths();
+      };
+      reader.onerror = function() {
+        alert("Error reading file");
+      };
+      reader.readAsText(file);
+    }
+    
+    // --- Attach All Static Event Listeners Once DOM is Ready ---
+    document.addEventListener('DOMContentLoaded', function() {
+      // InCopy Print Settings and Proxy Inputs
+      document.getElementById('outputMode').addEventListener('change', generateXml);
+      document.getElementById('imageData').addEventListener('change', generateXml);
+      document.getElementById('pagePosition').addEventListener('change', generateXml);
+      document.getElementById('includeProxy').addEventListener('change', function(e) {
+        document.getElementById('proxyUrl').disabled = !e.target.checked;
+        generateXml();
+      });
+      document.getElementById('proxyUrl').addEventListener('change', generateXml);
+      
+      // Other Controls
+      document.getElementById('copyBtn').addEventListener('click', copyXml);
+      document.getElementById('downloadBtn').addEventListener('click', downloadXml);
+      document.getElementById('shareBtn').addEventListener('click', shareConfig);
+      document.getElementById('newBtn').addEventListener('click', resetForm);
+      document.getElementById('addServerBtn').addEventListener('click', function() {
+        createServerEntry({ name: '', protocol: 'http', address: '', port: 8443, path: '/K4Server/', disabled: false });
+      });
+      document.getElementById('applyTestUrlBtn').addEventListener('click', applyTestUrl);
+      
+      // Installation Instructions Controls
+      document.getElementById('osMac').addEventListener('change', updateInstallPaths);
+      document.getElementById('osWin').addEventListener('change', updateInstallPaths);
+      document.getElementById('productInDesign').addEventListener('change', updateInstallPaths);
+      document.getElementById('productInCopy').addEventListener('change', updateInstallPaths);
+      document.getElementById('versionSelect').addEventListener('change', updateInstallPaths);
+      document.getElementById('useHomeVariable').addEventListener('change', updateInstallPaths);
+      
+      // Attach file upload listener for "Load Config"
+      document.getElementById('uploadFile').addEventListener('change', handleFileUpload);
+      
+      // Finally, load any query parameter values.
+      loadFromQueryParams();
+    });
   </script>
 </body>
 </html>
