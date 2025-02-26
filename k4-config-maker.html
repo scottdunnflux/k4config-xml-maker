@@ -660,6 +660,103 @@
       }
     }
     
+    // --- File Upload Processing ---
+    function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const xmlText = evt.target.result;
+        let parser = new DOMParser();
+        let xmlDoc = parser.parseFromString(xmlText, "application/xml");
+        
+        // Process Servers
+        const serversNode = xmlDoc.getElementsByTagName("servers")[0];
+        let loadedServers = [];
+        if (serversNode) {
+          for (let i = 0; i < serversNode.childNodes.length; i++) {
+            let child = serversNode.childNodes[i];
+            if (child.nodeType === Node.ELEMENT_NODE && child.tagName === "server") {
+              let s = {
+                name: child.getAttribute("name") || '',
+                protocol: child.getAttribute("protocol") || '',
+                address: child.getAttribute("address") || '',
+                port: Number(child.getAttribute("port") || 8443),
+                path: child.getAttribute("path") || '',
+                disabled: false
+              };
+              loadedServers.push(s);
+            } else if (child.nodeType === Node.COMMENT_NODE) {
+              // Try to parse commented-out server entries (disabled servers)
+              let tempDoc = parser.parseFromString("<wrapper>" + child.textContent + "</wrapper>", "application/xml");
+              let commentedServers = tempDoc.getElementsByTagName("server");
+              for (let j = 0; j < commentedServers.length; j++) {
+                let s = {
+                  name: commentedServers[j].getAttribute("name") || '',
+                  protocol: commentedServers[j].getAttribute("protocol") || '',
+                  address: commentedServers[j].getAttribute("address") || '',
+                  port: Number(commentedServers[j].getAttribute("port") || 8443),
+                  path: commentedServers[j].getAttribute("path") || '',
+                  disabled: true
+                };
+                loadedServers.push(s);
+              }
+            }
+          }
+        }
+        // Replace current servers with those loaded from the file.
+        servers = [];
+        loadedServers.forEach(s => {
+          const serverId = Date.now() + Math.random().toString(36).substring(2, 7);
+          servers.push({ id: serverId, ...s });
+        });
+        renderServers();
+        
+        // Process InCopy Print Settings
+        const inCopyPrintSettings = xmlDoc.getElementsByTagName("inCopyPrintSettings")[0];
+        if (inCopyPrintSettings) {
+          const outputMode = inCopyPrintSettings.getAttribute("outputMode");
+          if (outputMode) {
+            document.getElementById("outputMode").value = outputMode;
+          }
+          const imageData = inCopyPrintSettings.getAttribute("imageData");
+          if (imageData) {
+            document.getElementById("imageData").value = imageData;
+          }
+          const pagePosition = inCopyPrintSettings.getAttribute("pagePosition");
+          if (pagePosition) {
+            document.getElementById("pagePosition").value = pagePosition;
+          }
+        }
+        
+        // Process Proxy Settings
+        const proxy = xmlDoc.getElementsByTagName("proxy")[0];
+        if (proxy) {
+          const proxyUrl = proxy.getAttribute("url");
+          if (proxyUrl && isValidURL(proxyUrl)) {
+            document.getElementById("includeProxy").checked = true;
+            document.getElementById("proxyUrl").disabled = false;
+            document.getElementById("proxyUrl").value = proxyUrl;
+          } else {
+            document.getElementById("includeProxy").checked = false;
+            document.getElementById("proxyUrl").disabled = true;
+            document.getElementById("proxyUrl").value = '';
+          }
+        } else {
+          document.getElementById("includeProxy").checked = false;
+          document.getElementById("proxyUrl").disabled = true;
+          document.getElementById("proxyUrl").value = '';
+        }
+        
+        generateXml();
+        updateInstallPaths();
+      };
+      reader.onerror = function() {
+        alert("Error reading file");
+      };
+      reader.readAsText(file);
+    }
+    
     // --- Attach All Static Event Listeners Once DOM is Ready ---
     document.addEventListener('DOMContentLoaded', function() {
       // InCopy Print Settings and Proxy Inputs
@@ -689,6 +786,9 @@
       document.getElementById('productInCopy').addEventListener('change', updateInstallPaths);
       document.getElementById('versionSelect').addEventListener('change', updateInstallPaths);
       document.getElementById('useHomeVariable').addEventListener('change', updateInstallPaths);
+      
+      // Attach file upload listener for "Load Config"
+      document.getElementById('uploadFile').addEventListener('change', handleFileUpload);
       
       // Finally, load any query parameter values.
       loadFromQueryParams();
