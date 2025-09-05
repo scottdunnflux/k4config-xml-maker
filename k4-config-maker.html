@@ -595,6 +595,23 @@
         port = (protocol === "https") ? 443 : 80;
       }
       let fullPath = urlObj.pathname;
+      let adminConverted = false;
+      
+      // Check if this is an admin URL and convert it to test URL
+      let adminIndex = fullPath.indexOf("admin/");
+      if (adminIndex === -1) {
+        adminIndex = fullPath.indexOf("admin");
+        if (adminIndex !== -1 && adminIndex === fullPath.length - 5) {
+          // URL ends with "admin" (no trailing slash)
+          fullPath = fullPath.substring(0, adminIndex) + "test/";
+          adminConverted = true;
+        }
+      } else {
+        // URL contains "admin/"
+        fullPath = fullPath.replace("admin/", "test/");
+        adminConverted = true;
+      }
+      
       let testIndex = fullPath.indexOf("test/");
       let path = "";
       if (testIndex !== -1) {
@@ -604,6 +621,11 @@
         }
       } else {
         path = fullPath;
+      }
+      
+      // Show notification if admin URL was converted
+      if (adminConverted) {
+        alert("Admin URL detected and converted to test URL for K4 configuration.");
       }
       if (servers.length === 0) {
         createServerEntry({ name: address, protocol: protocol, address: address, port: Number(port), path: path });
@@ -633,20 +655,20 @@
       products.forEach(prod => {
         let basePath = "";
         if (os === "mac") {
-          basePath = useHome ? "~" : "/Users/[user]";
+          basePath = useHome ? "$HOME" : "/Users/[user]";
           if (prod === "InDesign") {
-            pathsHTML += `<p><strong>InDesign:</strong><br/><code>${basePath}/Library/Preferences/vjoon/K4/K4 Layout/${version}/</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button></p>`;
+            pathsHTML += `<p><strong>InDesign:</strong><br/><code>${basePath}/Library/Preferences/vjoon/K4/K4 Layout/${version}/</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button> <button onclick="copyOneLiner(this)" class="btn btn-sm btn-outline-primary">One-liner Install</button></p>`;
           }
           if (prod === "InCopy") {
-            pathsHTML += `<p><strong>InCopy:</strong><br/><code>${basePath}/Library/Preferences/vjoon/K4/K4 Edit/${version}/</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button></p>`;
+            pathsHTML += `<p><strong>InCopy:</strong><br/><code>${basePath}/Library/Preferences/vjoon/K4/K4 Edit/${version}/</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button> <button onclick="copyOneLiner(this)" class="btn btn-sm btn-outline-primary">One-liner Install</button></p>`;
           }
         } else {
           basePath = useHome ? "%USERPROFILE%" : "\\Users\\[user]";
           if (prod === "InDesign") {
-            pathsHTML += `<p><strong>InDesign:</strong><br/><code>${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Layout\\${version}\\</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button></p>`;
+            pathsHTML += `<p><strong>InDesign:</strong><br/><code>${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Layout\\${version}\\</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button> <button onclick="copyOneLiner(this)" class="btn btn-sm btn-outline-primary">One-liner Install</button></p>`;
           }
           if (prod === "InCopy") {
-            pathsHTML += `<p><strong>InCopy:</strong><br/><code>${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Edit\\${version}\\</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button></p>`;
+            pathsHTML += `<p><strong>InCopy:</strong><br/><code>${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Edit\\${version}\\</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button> <button onclick="copyOneLiner(this)" class="btn btn-sm btn-outline-primary">One-liner Install</button></p>`;
           }
         }
       });
@@ -663,6 +685,47 @@
           })
           .catch(err => {
             console.error("Error copying text: ", err);
+          });
+      }
+    }
+    
+    // --- Function to Copy One-liner Install Command ---
+    function copyOneLiner(button) {
+      const codeElem = button.previousElementSibling.previousElementSibling;
+      if (codeElem && codeElem.tagName.toLowerCase() === 'code') {
+        const installPath = codeElem.textContent.trim();
+        const xmlContent = document.getElementById('xmlOutput').textContent;
+        const os = document.querySelector('input[name="os"]:checked').value;
+        
+        let command = '';
+        const fullPath = installPath + (installPath.endsWith('/') || installPath.endsWith('\\') ? '' : (os === 'mac' ? '/' : '\\')) + 'K4 Config.xml';
+        
+        if (os === 'mac') {
+          // For macOS, use single quotes to wrap XML content (safer than double quotes)
+          // Need to escape any single quotes in the XML by ending quote, adding escaped quote, starting quote again
+          const escapedXml = xmlContent.replace(/'/g, "'\\''");
+          command = `echo '${escapedXml}' > "${fullPath}"`;
+        } else {
+          // For Windows CMD, use caret escaping for special characters and remove newlines
+          const escapedXml = xmlContent
+            .replace(/\r?\n/g, ' ')  // Replace newlines with spaces to make it single line
+            .replace(/\^/g, '^^')
+            .replace(/</g, '^<')
+            .replace(/>/g, '^>')
+            .replace(/&/g, '^&')
+            .replace(/\|/g, '^|')
+            .replace(/\s+/g, ' ')    // Collapse multiple spaces into single spaces
+            .trim();
+          command = `echo ${escapedXml} > "${fullPath}"`;
+        }
+        
+        navigator.clipboard.writeText(command)
+          .then(() => {
+            alert(`One-liner install command copied to clipboard!\n\nFor ${os === 'mac' ? 'macOS Terminal' : 'Windows Command Prompt'}:\n${command.substring(0, 100)}${command.length > 100 ? '...' : ''}`);
+          })
+          .catch(err => {
+            console.error("Error copying command: ", err);
+            alert("Error copying command to clipboard");
           });
       }
     }
