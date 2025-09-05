@@ -53,6 +53,8 @@ This SPA was developed by Scott Dunn at [Flux Consulting, Inc.](https://fluxcons
 
 * 2025-02-11
     * Inital version
+* 2025-09-05
+    * Optimized share URLs
 
 ## License
 
