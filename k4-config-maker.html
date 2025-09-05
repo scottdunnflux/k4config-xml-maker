@@ -271,6 +271,49 @@
     // --- Global Array for Server Objects ---
     let servers = [];
     
+    // --- Parameter Aliases for Shorter URLs ---
+    const parameterAliases = {
+      // Server parameters
+      'server_name': 'n',
+      'server_protocol': 'p', 
+      'server_address': 'a',
+      'server_port': 'o',
+      'server_path': 'h',
+      'server_disabled': 'd',
+      // InCopy settings
+      'outputMode': 'm',
+      'imageData': 'i', 
+      'pagePosition': 's',
+      // Proxy settings
+      'includeProxy': 'x',
+      'proxyUrl': 'u',
+      // Installation settings
+      'os': 'z',
+      'productInDesign': 'g',
+      'productInCopy': 'c',
+      'versionSelect': 'v',
+      'useHomeVariable': 'e',
+      // Other
+      'testUrl': 't'
+    };
+    
+    // Reverse mapping for backward compatibility
+    const aliasToParameter = Object.fromEntries(
+      Object.entries(parameterAliases).map(([key, value]) => [value, key])
+    );
+    
+    // Helper function to get parameter value supporting both long and short names
+    function getParam(params, longName) {
+      const shortName = parameterAliases[longName];
+      return params.get(shortName) || params.get(longName);
+    }
+    
+    // Helper function to check if parameter exists (either long or short name)
+    function hasParam(params, longName) {
+      const shortName = parameterAliases[longName];
+      return params.has(shortName) || params.has(longName);
+    }
+    
     // --- Create a New Server Entry with Default or Provided Values ---
     function createServerEntry(data = {}) {
       const serverId = Date.now() + Math.random().toString(36).substring(2, 7);
@@ -453,39 +496,68 @@
     // --- Share Button: Generate a URL with Query Parameters and Copy It ---
     function shareConfig() {
       const params = new URLSearchParams();
-      // Share the first server's options (if any)
+      // Share the first server's options (if any) - only include non-default values
       if (servers.length > 0) {
         let server = servers[0];
-        params.set('server_name', server.name);
-        params.set('server_protocol', server.protocol);
-        params.set('server_address', server.address);
-        params.set('server_port', server.port);
-        params.set('server_path', server.path);
-        params.set('server_disabled', server.disabled);
+        if (server.name !== 'example.com') {
+          params.set(parameterAliases['server_name'], server.name);
+        }
+        if (server.protocol !== 'https') {
+          params.set(parameterAliases['server_protocol'], server.protocol);
+        }
+        if (server.address !== 'example.com') {
+          params.set(parameterAliases['server_address'], server.address);
+        }
+        if (server.port !== 8443) {
+          params.set(parameterAliases['server_port'], server.port);
+        }
+        if (server.path !== '/K4Server/') {
+          params.set(parameterAliases['server_path'], server.path);
+        }
+        if (server.disabled === true) {
+          params.set(parameterAliases['server_disabled'], server.disabled);
+        }
       }
-      // InCopyPrintSettings
-      params.set('outputMode', document.getElementById('outputMode').value);
-      params.set('imageData', document.getElementById('imageData').value);
-      params.set('pagePosition', document.getElementById('pagePosition').value);
-      // Proxy Settings
-      params.set('includeProxy', document.getElementById('includeProxy').checked ? "true" : "false");
+      // InCopyPrintSettings - only include non-default values
+      const outputMode = document.getElementById('outputMode').value;
+      if (outputMode !== 'default') {
+        params.set(parameterAliases['outputMode'], outputMode);
+      }
+      const imageData = document.getElementById('imageData').value;
+      if (imageData !== 'default') {
+        params.set(parameterAliases['imageData'], imageData);
+      }
+      const pagePosition = document.getElementById('pagePosition').value;
+      if (pagePosition !== 'default') {
+        params.set(parameterAliases['pagePosition'], pagePosition);
+      }
+      // Proxy Settings - only include if enabled
       if (document.getElementById('includeProxy').checked) {
-        params.set('proxyUrl', document.getElementById('proxyUrl').value);
+        params.set(parameterAliases['includeProxy'], "true");
+        params.set(parameterAliases['proxyUrl'], document.getElementById('proxyUrl').value);
       }
       // Test URL
       if (document.getElementById('testUrl').value.trim() !== "") {
-        params.set('testUrl', document.getElementById('testUrl').value.trim());
+        params.set(parameterAliases['testUrl'], document.getElementById('testUrl').value.trim());
       }
-      // Installation Instructions
-      params.set('os', document.querySelector('input[name="os"]:checked').value);
-      if (document.getElementById('productInDesign').checked) {
-        params.set('productInDesign', "true");
+      // Installation Instructions - only include non-default values
+      const os = document.querySelector('input[name="os"]:checked').value;
+      if (os !== 'mac') {
+        params.set(parameterAliases['os'], os);
+      }
+      if (!document.getElementById('productInDesign').checked) {
+        params.set(parameterAliases['productInDesign'], "false");
       }
       if (document.getElementById('productInCopy').checked) {
-        params.set('productInCopy', "true");
+        params.set(parameterAliases['productInCopy'], "true");
       }
-      params.set('versionSelect', document.getElementById('versionSelect').value);
-      params.set('useHomeVariable', document.getElementById('useHomeVariable').checked ? "true" : "false");
+      const versionSelect = document.getElementById('versionSelect').value;
+      if (versionSelect !== '2024') {
+        params.set(parameterAliases['versionSelect'], versionSelect);
+      }
+      if (!document.getElementById('useHomeVariable').checked) {
+        params.set(parameterAliases['useHomeVariable'], "false");
+      }
       
       const shareUrl = window.location.origin + window.location.pathname + "?" + params.toString();
       navigator.clipboard.writeText(shareUrl).then(() => {
@@ -613,44 +685,94 @@
     function loadFromQueryParams() {
       const params = new URLSearchParams(window.location.search);
       let hasServer = false;
-      if (params.has("server_name")) {
-        const name = params.get("server_name");
-        const protocol = params.get("server_protocol") || "http";
-        const address = params.get("server_address") || "";
-        const port = params.get("server_port") ? Number(params.get("server_port")) : 8443;
-        const path = params.get("server_path") || "/K4Server/";
-        const disabled = params.get("server_disabled") === "true";
+      if (hasParam(params, "server_name")) {
+        const name = getParam(params, "server_name");
+        const protocol = getParam(params, "server_protocol") || "https"; // Updated default to match shareConfig
+        const address = getParam(params, "server_address") || "";
+        const port = getParam(params, "server_port") ? Number(getParam(params, "server_port")) : 8443;
+        const path = getParam(params, "server_path") || "/K4Server/";
+        const disabled = getParam(params, "server_disabled") === "true";
         createServerEntry({ name, protocol, address, port, path, disabled });
         hasServer = true;
       }
       if (!hasServer) {
         createServerEntry();
       }
-      if (params.has("outputMode")) {
-        document.getElementById("outputMode").value = params.get("outputMode");
+      // Load InCopyPrintSettings with defaults
+      if (hasParam(params, "outputMode")) {
+        document.getElementById("outputMode").value = getParam(params, "outputMode");
+      } else {
+        document.getElementById("outputMode").value = 'default';
       }
-      if (params.has("imageData")) {
-        document.getElementById("imageData").value = params.get("imageData");
+      if (hasParam(params, "imageData")) {
+        document.getElementById("imageData").value = getParam(params, "imageData");
+      } else {
+        document.getElementById("imageData").value = 'default';
       }
-      if (params.has("pagePosition")) {
-        document.getElementById("pagePosition").value = params.get("pagePosition");
+      if (hasParam(params, "pagePosition")) {
+        document.getElementById("pagePosition").value = getParam(params, "pagePosition");
+      } else {
+        document.getElementById("pagePosition").value = 'default';
       }
-      if (params.has("includeProxy") && params.get("includeProxy") === "true") {
+      // Load proxy settings with defaults
+      if (hasParam(params, "includeProxy") && getParam(params, "includeProxy") === "true") {
         document.getElementById("includeProxy").checked = true;
         document.getElementById("proxyUrl").disabled = false;
-        if (params.has("proxyUrl")) {
-          document.getElementById("proxyUrl").value = params.get("proxyUrl");
+        if (hasParam(params, "proxyUrl")) {
+          document.getElementById("proxyUrl").value = getParam(params, "proxyUrl");
         }
+      } else {
+        document.getElementById("includeProxy").checked = false;
+        document.getElementById("proxyUrl").disabled = true;
+        document.getElementById("proxyUrl").value = '';
       }
-      if (params.has("testUrl")) {
-        document.getElementById("testUrl").value = params.get("testUrl");
+      if (hasParam(params, "testUrl")) {
+        document.getElementById("testUrl").value = getParam(params, "testUrl");
+      }
+      // Load installation settings with defaults
+      if (hasParam(params, "os")) {
+        const os = getParam(params, "os");
+        if (os === "win") {
+          document.getElementById("osWin").checked = true;
+          document.getElementById("osMac").checked = false;
+        } else {
+          document.getElementById("osMac").checked = true;
+          document.getElementById("osWin").checked = false;
+        }
+      } else {
+        // Default to mac
+        document.getElementById("osMac").checked = true;
+        document.getElementById("osWin").checked = false;
+      }
+      // Handle productInDesign - default is true, only set to false if explicitly "false"
+      if (hasParam(params, "productInDesign")) {
+        document.getElementById("productInDesign").checked = getParam(params, "productInDesign") === "true";
+      } else {
+        document.getElementById("productInDesign").checked = true; // Default
+      }
+      // Handle productInCopy - default is false, only set to true if explicitly "true"  
+      if (hasParam(params, "productInCopy")) {
+        document.getElementById("productInCopy").checked = getParam(params, "productInCopy") === "true";
+      } else {
+        document.getElementById("productInCopy").checked = false; // Default
+      }
+      if (hasParam(params, "versionSelect")) {
+        document.getElementById("versionSelect").value = getParam(params, "versionSelect");
+      } else {
+        document.getElementById("versionSelect").value = '2024'; // Default
+      }
+      // Handle useHomeVariable - default is true, only set to false if explicitly "false"
+      if (hasParam(params, "useHomeVariable")) {
+        document.getElementById("useHomeVariable").checked = getParam(params, "useHomeVariable") === "true";
+      } else {
+        document.getElementById("useHomeVariable").checked = true; // Default
       }
       generateXml();
       updateInstallPaths();
       
       // Unhide and activate the Shared Config tab if any expected URL parameter is present.
-      const expectedKeys = ["server_name", "outputMode", "includeProxy", "testUrl"];
-      if (expectedKeys.some(key => params.has(key))) {
+      const expectedKeys = ["server_name", "outputMode", "imageData", "pagePosition", "includeProxy", "testUrl", "os", "productInDesign", "productInCopy", "versionSelect", "useHomeVariable"];
+      if (expectedKeys.some(key => hasParam(params, key))) {
         const sharedTabLi = document.getElementById("shared-tab-li");
         if (sharedTabLi) {
           sharedTabLi.classList.remove("d-none");
