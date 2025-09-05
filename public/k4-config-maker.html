@@ -5,7 +5,7 @@
   <!-- For compatibility with older browsers -->
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>K4 Config.xml maker</title>
+  <title>Flux Consulting's K4 ConfigSmith</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Prism CSS -->
@@ -31,13 +31,17 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>The Amazing `K4 Config.xml` maker</h1>
-    <p class="text-muted">K4 solutions from Flux Consulting, Inc.—Trusted since 1996.</p>
+  <div class="container-fluid">
+    <h1><span style='font-family: monospace, Consolar, DejaVu Sans Mono, Lucida Console, Courier, "Courier New"; font-weight: bold;'>K4 ConfigSmith</span></h1>
+    <p class="text-muted">A solution by <i>Flux Consulting, Inc.</i> Est. 1996.</p>
+    <hr/>
     <div class="row">
       <!-- Left Column: Controls and Form -->
       <div class="col-md-6">
-        <!-- Top 3-Panel Interface -->
+        <h5 class="card-title">Craft your K4 Client Configuration</h5>
+        <br/>
+        <h6 class="card-title" style='margin-bottom: 3px;'><span style='font-size: 36px; vertical-align:middle;'>❶</span><span style="vertical-align: middle;"> Initialize Your K4 Config.xml settings</span></h6>
+        <!-- Top 4-Panel Interface -->
         <ul class="nav nav-tabs" id="topTab" role="tablist">
           <li class="nav-item" role="presentation">
             <button class="nav-link active" id="new-tab" data-bs-toggle="tab" data-bs-target="#new-panel" type="button" role="tab">New</button>
@@ -47,6 +51,10 @@
           </li>
           <li class="nav-item" role="presentation">
             <button class="nav-link" id="test-tab" data-bs-toggle="tab" data-bs-target="#test-panel" type="button" role="tab">Apply Test URL</button>
+          </li>
+          <!-- New Shared Config Tab (initially hidden) -->
+          <li class="nav-item d-none" role="presentation" id="shared-tab-li">
+            <button class="nav-link" id="shared-tab" data-bs-toggle="tab" data-bs-target="#shared-panel" type="button" role="tab">Shared Config</button>
           </li>
         </ul>
         <div class="tab-content border-bottom border-start border-end p-3" id="topTabContent">
@@ -58,7 +66,7 @@
           <!-- Panel 2: Load Config -->
           <div class="tab-pane fade" id="load-panel" role="tabpanel" aria-labelledby="load-tab">
             <div class="mb-3">
-              <label for="uploadFile" class="form-label">Upload Existing XML</label>
+              <label for="uploadFile" class="form-label">Upload Existing "K4 Config.xml" file</label>
               <input type="file" id="uploadFile" class="form-control" accept=".xml">
             </div>
           </div>
@@ -71,15 +79,21 @@
             </div>
             <button type="button" class="btn btn-secondary" id="applyTestUrlBtn">Apply Test URL</button>
           </div>
+          <!-- Panel 4: Shared Config (added when URL data is detected) -->
+          <div class="tab-pane fade" id="shared-panel" role="tabpanel" aria-labelledby="shared-tab">
+            <p>Setup Initialized from data in URL. Review shared settings in the next section.</p>
+          </div>
         </div>
         
+        <br/>
+        <h6 class="card-title"><span style='font-size: 36px; vertical-align:middle;'>❷</span><span style='vertical-align: middle;'> Review & Adjust values</span></h6>
         <!-- Collapsible Sections -->
         <div class="accordion mt-4" id="configAccordion">
           <!-- Servers Section -->
           <div class="accordion-item">
             <h2 class="accordion-header" id="headingServers">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseServers" aria-expanded="false" aria-controls="collapseServers">
-                Servers
+                Server(s) Setup
               </button>
             </h2>
             <div id="collapseServers" class="accordion-collapse collapse" aria-labelledby="headingServers" data-bs-parent="#configAccordion">
@@ -150,9 +164,7 @@
                   <label for="proxyUrl" class="form-label">Proxy URL</label>
                   <input type="url" id="proxyUrl" class="form-control" placeholder="http://localhost:8585" disabled>
                   <div class="form-text">
-                    If you want to use a proxy server to access K4 server, use the following setting to configure the connection to the proxy server.<br>
-                    The URL should look like this: &lt;Protocol&gt;://&lt;DNS name or IP address of the proxy server&gt;:&lt;Port&gt;<br>
-                    Example: <code>&lt;proxy url="http://localhost:8585"/&gt;</code>
+                    <code>&lt;proxy url="http://localhost:8585"/&gt;</code>
                   </div>
                 </div>
               </div>
@@ -163,7 +175,9 @@
       
       <!-- Right Column: XML Preview, Download/Share, and Installation Instructions -->
       <div class="col-md-6">
+        <h6 class="card-title"><span style='font-size: 36px; vertical-align:middle;'>❸</span><span style='vertical-align: middle;'> Get the config</span></h6>
         <div class="xml-preview-container border p-3">
+          <h5 class="card-title">K4 Config.xml</h5>
           <button type="button" class="btn btn-sm btn-outline-secondary copy-button" id="copyBtn">Copy</button>
           <pre><code id="xmlOutput" class="language-xml"></code></pre>
         </div>
@@ -172,10 +186,11 @@
           <button type="button" class="btn btn-secondary" id="shareBtn">Share</button>
         </div>
         <!-- Installation Instructions Section -->
+        <h6 class="card-title"><span style='font-size: 36px; vertical-align:middle;'>❹</span><span style='vertical-align: middle;'> Install it</span></h6>
         <div class="card mt-4">
           <div class="card-body">
             <h5 class="card-title">Installation Instructions</h5>
-            <p class="text-muted">Choose from the options below to see the correct file path for installation.</p>
+            <p class="text-muted">Choose from the options below to see the correct file path for installation. Or store the file on the computer and select it when prompted by the vjoon K4 Client installer.</p>
             <form id="installForm">
               <div class="mb-3">
                 <label class="form-label fw-semibold">Operating System</label>
@@ -206,12 +221,12 @@
               <div class="mb-3">
                 <label for="versionSelect" class="form-label fw-semibold">Version</label>
                 <select id="versionSelect" class="form-select">
-                  <option value="2024">2024 (19.0)</option>
-                  <option value="2025">2025 (20.0)</option>
+                  <option value="2024">2024 (19.X)</option>
+                  <option value="2025">2025 (20.X)</option>
                 </select>
               </div>
               <div class="mb-3 form-check">
-                <input type="checkbox" class="form-check-input" id="useHomeVariable">
+                <input type="checkbox" class="form-check-input" id="useHomeVariable" checked="true">
                 <label class="form-check-label" for="useHomeVariable">Use Home Folder Variable</label>
               </div>
             </form>
@@ -219,6 +234,7 @@
             <div id="installPaths">
               <!-- Computed paths will be displayed here -->
             </div>
+            <p>Make sure the file is named <code>K4 Config.xml</code></p>
           </div>
         </div>
       </div>
@@ -255,13 +271,56 @@
     // --- Global Array for Server Objects ---
     let servers = [];
     
+    // --- Parameter Aliases for Shorter URLs ---
+    const parameterAliases = {
+      // Server parameters
+      'server_name': 'n',
+      'server_protocol': 'p', 
+      'server_address': 'a',
+      'server_port': 'o',
+      'server_path': 'h',
+      'server_disabled': 'd',
+      // InCopy settings
+      'outputMode': 'm',
+      'imageData': 'i', 
+      'pagePosition': 's',
+      // Proxy settings
+      'includeProxy': 'x',
+      'proxyUrl': 'u',
+      // Installation settings
+      'os': 'z',
+      'productInDesign': 'g',
+      'productInCopy': 'c',
+      'versionSelect': 'v',
+      'useHomeVariable': 'e',
+      // Other
+      'testUrl': 't'
+    };
+    
+    // Reverse mapping for backward compatibility
+    const aliasToParameter = Object.fromEntries(
+      Object.entries(parameterAliases).map(([key, value]) => [value, key])
+    );
+    
+    // Helper function to get parameter value supporting both long and short names
+    function getParam(params, longName) {
+      const shortName = parameterAliases[longName];
+      return params.get(shortName) || params.get(longName);
+    }
+    
+    // Helper function to check if parameter exists (either long or short name)
+    function hasParam(params, longName) {
+      const shortName = parameterAliases[longName];
+      return params.has(shortName) || params.has(longName);
+    }
+    
     // --- Create a New Server Entry with Default or Provided Values ---
     function createServerEntry(data = {}) {
       const serverId = Date.now() + Math.random().toString(36).substring(2, 7);
       const defaultData = {
         name: 'example.com',
         protocol: (servers.length === 0 ? 'https' : 'http'),
-        address: 'example.com-v15-k4.fluxcloud.us',
+        address: 'example.com',
         port: 8443,
         path: '/K4Server/',
         disabled: false
@@ -401,10 +460,6 @@
         }
       } else {
         xml += '  <!--\n';
-        xml += '    If you want to use a proxy server to access K4 server, use the following\n';
-        xml += '    setting to configure the connection to the proxy server.\n\n';
-        xml += '    The URL should look like this: <Protocol>://<DNS name or IP address of the proxy server>:<Port>\n\n';
-        xml += '    Example:\n';
         xml += '    <proxy url="http://localhost:8585"/>\n';
         xml += '  -->\n';
       }
@@ -416,22 +471,244 @@
       Prism.highlightElement(xmlOutput);
     }
     
-    // --- Event Listeners for InCopyPrintSettings and Proxy Inputs ---
-    document.getElementById('outputMode').addEventListener('change', generateXml);
-    document.getElementById('imageData').addEventListener('change', generateXml);
-    document.getElementById('pagePosition').addEventListener('change', generateXml);
-    document.getElementById('includeProxy').addEventListener('change', function(e) {
-      document.getElementById('proxyUrl').disabled = !e.target.checked;
-      generateXml();
-    });
-    document.getElementById('proxyUrl').addEventListener('change', generateXml);
+    // --- Copy XML to Clipboard ---
+    function copyXml() {
+      const xmlText = document.getElementById('xmlOutput').textContent;
+      navigator.clipboard.writeText(xmlText).then(() => {
+        alert('XML copied to clipboard!');
+      });
+    }
     
-    // --- Add Server Button ---
-    document.getElementById('addServerBtn').addEventListener('click', function() {
-      createServerEntry({ name: '', protocol: 'http', address: '', port: 8443, path: '/K4Server/', disabled: false });
-    });
+    // --- Download XML File ---
+    function downloadXml() {
+      const xmlText = document.getElementById('xmlOutput').textContent;
+      const blob = new Blob([xmlText], { type: 'application/xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'K4 Config.xml';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
     
-    // --- "New" Button Event ---
+    // --- Share Button: Generate a URL with Query Parameters and Copy It ---
+    function shareConfig() {
+      const params = new URLSearchParams();
+      // Share the first server's options (if any) - only include non-default values
+      if (servers.length > 0) {
+        let server = servers[0];
+        if (server.name !== 'example.com') {
+          params.set(parameterAliases['server_name'], server.name);
+        }
+        if (server.protocol !== 'https') {
+          params.set(parameterAliases['server_protocol'], server.protocol);
+        }
+        if (server.address !== 'example.com') {
+          params.set(parameterAliases['server_address'], server.address);
+        }
+        if (server.port !== 8443) {
+          params.set(parameterAliases['server_port'], server.port);
+        }
+        if (server.path !== '/K4Server/') {
+          params.set(parameterAliases['server_path'], server.path);
+        }
+        if (server.disabled === true) {
+          params.set(parameterAliases['server_disabled'], server.disabled);
+        }
+      }
+      // InCopyPrintSettings - only include non-default values
+      const outputMode = document.getElementById('outputMode').value;
+      if (outputMode !== 'default') {
+        params.set(parameterAliases['outputMode'], outputMode);
+      }
+      const imageData = document.getElementById('imageData').value;
+      if (imageData !== 'default') {
+        params.set(parameterAliases['imageData'], imageData);
+      }
+      const pagePosition = document.getElementById('pagePosition').value;
+      if (pagePosition !== 'default') {
+        params.set(parameterAliases['pagePosition'], pagePosition);
+      }
+      // Proxy Settings - only include if enabled
+      if (document.getElementById('includeProxy').checked) {
+        params.set(parameterAliases['includeProxy'], "true");
+        params.set(parameterAliases['proxyUrl'], document.getElementById('proxyUrl').value);
+      }
+      // Test URL
+      if (document.getElementById('testUrl').value.trim() !== "") {
+        params.set(parameterAliases['testUrl'], document.getElementById('testUrl').value.trim());
+      }
+      // Installation Instructions - only include non-default values
+      const os = document.querySelector('input[name="os"]:checked').value;
+      if (os !== 'mac') {
+        params.set(parameterAliases['os'], os);
+      }
+      if (!document.getElementById('productInDesign').checked) {
+        params.set(parameterAliases['productInDesign'], "false");
+      }
+      if (document.getElementById('productInCopy').checked) {
+        params.set(parameterAliases['productInCopy'], "true");
+      }
+      const versionSelect = document.getElementById('versionSelect').value;
+      if (versionSelect !== '2024') {
+        params.set(parameterAliases['versionSelect'], versionSelect);
+      }
+      if (!document.getElementById('useHomeVariable').checked) {
+        params.set(parameterAliases['useHomeVariable'], "false");
+      }
+      
+      const shareUrl = window.location.origin + window.location.pathname + "?" + params.toString();
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        alert("Share URL copied to clipboard:\n" + shareUrl);
+      });
+    }
+    
+    // --- Parse Test URL into Fields ---
+    function applyTestUrl() {
+      const testUrlInput = document.getElementById('testUrl');
+      const testUrlValue = testUrlInput.value.trim();
+      if (!isValidURL(testUrlValue)) {
+        alert("Invalid URL. Please enter a valid http or https URL.");
+        testUrlInput.classList.add("error");
+        return;
+      }
+      testUrlInput.classList.remove("error");
+      let urlObj;
+      try {
+        urlObj = new URL(testUrlValue);
+      } catch (e) {
+        alert("Invalid URL. Please enter a valid http or https URL.");
+        testUrlInput.classList.add("error");
+        return;
+      }
+      if (urlObj.protocol !== "http:" && urlObj.protocol !== "https:") {
+        alert("Only http or https URLs are allowed.");
+        testUrlInput.classList.add("error");
+        return;
+      }
+      const protocol = urlObj.protocol.slice(0, -1);
+      const address = urlObj.hostname;
+      let port = urlObj.port;
+      if (!port) {
+        port = (protocol === "https") ? 443 : 80;
+      }
+      let fullPath = urlObj.pathname;
+      let testIndex = fullPath.indexOf("test/");
+      let path = "";
+      if (testIndex !== -1) {
+        path = fullPath.substring(0, testIndex);
+        if (!path.endsWith("/")) {
+          path += "/";
+        }
+      } else {
+        path = fullPath;
+      }
+      if (servers.length === 0) {
+        createServerEntry({ name: address, protocol: protocol, address: address, port: Number(port), path: path });
+      } else {
+        servers[0].name = address;
+        servers[0].protocol = protocol;
+        servers[0].address = address;
+        servers[0].port = Number(port);
+        servers[0].path = path;
+        renderServers();
+      }
+    }
+    
+    // --- Update Installation Paths Based on Selections ---
+    function updateInstallPaths() {
+      const os = document.querySelector('input[name="os"]:checked').value;
+      let products = [];
+      if (document.getElementById('productInDesign').checked) {
+        products.push("InDesign");
+      }
+      if (document.getElementById('productInCopy').checked) {
+        products.push("InCopy");
+      }
+      const version = document.getElementById('versionSelect').value;
+      const useHome = document.getElementById('useHomeVariable').checked;
+      let pathsHTML = "";
+      products.forEach(prod => {
+        let basePath = "";
+        if (os === "mac") {
+          basePath = useHome ? "$HOME" : "/Users/[user]";
+          if (prod === "InDesign") {
+            pathsHTML += `<p><strong>InDesign:</strong><br/><code>${basePath}/Library/Preferences/vjoon/K4/K4 Layout/${version}/</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button> <button onclick="copyOneLiner(this)" class="btn btn-sm btn-outline-primary">One-liner Install</button></p>`;
+          }
+          if (prod === "InCopy") {
+            pathsHTML += `<p><strong>InCopy:</strong><br/><code>${basePath}/Library/Preferences/vjoon/K4/K4 Edit/${version}/</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button> <button onclick="copyOneLiner(this)" class="btn btn-sm btn-outline-primary">One-liner Install</button></p>`;
+          }
+        } else {
+          basePath = useHome ? "%USERPROFILE%" : "\\Users\\[user]";
+          if (prod === "InDesign") {
+            pathsHTML += `<p><strong>InDesign:</strong><br/><code>${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Layout\\${version}\\</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button> <button onclick="copyOneLiner(this)" class="btn btn-sm btn-outline-primary">One-liner Install</button></p>`;
+          }
+          if (prod === "InCopy") {
+            pathsHTML += `<p><strong>InCopy:</strong><br/><code>${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Edit\\${version}\\</code> <button onclick="copyPath(this)" class="btn btn-sm btn-outline-secondary">Copy</button> <button onclick="copyOneLiner(this)" class="btn btn-sm btn-outline-primary">One-liner Install</button></p>`;
+          }
+        }
+      });
+      document.getElementById("installPaths").innerHTML = pathsHTML;
+    }
+    
+    // --- Function to Copy Installation Path from <code> Element ---
+    function copyPath(button) {
+      const codeElem = button.previousElementSibling;
+      if (codeElem && codeElem.tagName.toLowerCase() === 'code') {
+        navigator.clipboard.writeText(codeElem.textContent.trim())
+          .then(() => {
+            alert("Path copied to clipboard!");
+          })
+          .catch(err => {
+            console.error("Error copying text: ", err);
+          });
+      }
+    }
+    
+    // --- Function to Copy One-liner Install Command ---
+    function copyOneLiner(button) {
+      const codeElem = button.previousElementSibling.previousElementSibling;
+      if (codeElem && codeElem.tagName.toLowerCase() === 'code') {
+        const installPath = codeElem.textContent.trim();
+        const xmlContent = document.getElementById('xmlOutput').textContent;
+        const os = document.querySelector('input[name="os"]:checked').value;
+        
+        let command = '';
+        const fullPath = installPath + (installPath.endsWith('/') || installPath.endsWith('\\') ? '' : (os === 'mac' ? '/' : '\\')) + 'K4 Config.xml';
+        
+        if (os === 'mac') {
+          // For macOS, use single quotes to wrap XML content (safer than double quotes)
+          // Need to escape any single quotes in the XML by ending quote, adding escaped quote, starting quote again
+          const escapedXml = xmlContent.replace(/'/g, "'\\''");
+          command = `echo '${escapedXml}' > "${fullPath}"`;
+        } else {
+          // For Windows CMD, use caret escaping for special characters and remove newlines
+          const escapedXml = xmlContent
+            .replace(/\r?\n/g, ' ')  // Replace newlines with spaces to make it single line
+            .replace(/\^/g, '^^')
+            .replace(/</g, '^<')
+            .replace(/>/g, '^>')
+            .replace(/&/g, '^&')
+            .replace(/\|/g, '^|')
+            .replace(/\s+/g, ' ')    // Collapse multiple spaces into single spaces
+            .trim();
+          command = `echo ${escapedXml} > "${fullPath}"`;
+        }
+        
+        navigator.clipboard.writeText(command)
+          .then(() => {
+            alert(`One-liner install command copied to clipboard!\n\nFor ${os === 'mac' ? 'macOS Terminal' : 'Windows Command Prompt'}:\n${command.substring(0, 100)}${command.length > 100 ? '...' : ''}`);
+          })
+          .catch(err => {
+            console.error("Error copying command: ", err);
+            alert("Error copying command to clipboard");
+          });
+      }
+    }
+    
+    // --- Reset Form Function ---
     function resetForm() {
       servers = [];
       createServerEntry();
@@ -444,161 +721,241 @@
       document.getElementById('testUrl').value = '';
       generateXml();
     }
-    document.getElementById('newBtn').addEventListener('click', resetForm);
-    
-    // --- Copy XML to Clipboard ---
-    document.getElementById('copyBtn').addEventListener('click', function() {
-      const xmlText = document.getElementById('xmlOutput').textContent;
-      navigator.clipboard.writeText(xmlText).then(() => {
-        alert('XML copied to clipboard!');
-      });
-    });
-    
-    // --- Download XML File ---
-    document.getElementById('downloadBtn').addEventListener('click', function() {
-      const xmlText = document.getElementById('xmlOutput').textContent;
-      const blob = new Blob([xmlText], { type: 'application/xml' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'K4 Config.xml';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    });
-    
-    // --- Share Button: Generate a URL with Query Parameters and Copy It ---
-    document.getElementById('shareBtn').addEventListener('click', function() {
-      const params = new URLSearchParams();
-      // Share the first server's options (if any)
-      if (servers.length > 0) {
-        let server = servers[0];
-        params.set('server_name', server.name);
-        params.set('server_protocol', server.protocol);
-        params.set('server_address', server.address);
-        params.set('server_port', server.port);
-        params.set('server_path', server.path);
-        params.set('server_disabled', server.disabled);
-      }
-      // InCopyPrintSettings
-      params.set('outputMode', document.getElementById('outputMode').value);
-      params.set('imageData', document.getElementById('imageData').value);
-      params.set('pagePosition', document.getElementById('pagePosition').value);
-      // Proxy Settings
-      params.set('includeProxy', document.getElementById('includeProxy').checked ? "true" : "false");
-      if (document.getElementById('includeProxy').checked) {
-        params.set('proxyUrl', document.getElementById('proxyUrl').value);
-      }
-      // Test URL
-      if (document.getElementById('testUrl').value.trim() !== "") {
-        params.set('testUrl', document.getElementById('testUrl').value.trim());
-      }
-      // Installation Instructions
-      params.set('os', document.querySelector('input[name="os"]:checked').value);
-      if (document.getElementById('productInDesign').checked) {
-        params.set('productInDesign', "true");
-      }
-      if (document.getElementById('productInCopy').checked) {
-        params.set('productInCopy', "true");
-      }
-      params.set('versionSelect', document.getElementById('versionSelect').value);
-      params.set('useHomeVariable', document.getElementById('useHomeVariable').checked ? "true" : "false");
-      
-      // Construct full URL (base URL + query string)
-      const shareUrl = window.location.origin + window.location.pathname + "?" + params.toString();
-      navigator.clipboard.writeText(shareUrl).then(() => {
-        alert("Share URL copied to clipboard:\n" + shareUrl);
-      });
-    });
-    
-    // --- Update Installation Paths Based on Selections ---
-    function updateInstallPaths() {
-      const os = document.querySelector('input[name="os"]:checked').value; // "mac" or "win"
-      let products = [];
-      if (document.getElementById('productInDesign').checked) {
-        products.push("InDesign");
-      }
-      if (document.getElementById('productInCopy').checked) {
-        products.push("InCopy");
-      }
-      const version = document.getElementById('versionSelect').value;
-      const useHome = document.getElementById('useHomeVariable').checked;
-      let pathsHTML = "";
-      
-      products.forEach(prod => {
-        let basePath = "";
-        if (os === "mac") {
-          basePath = useHome ? "$HOME" : "/Users/[user]";
-          if (prod === "InDesign") {
-            pathsHTML += `<p><strong>InDesign:</strong> ${basePath}/Library/Preferences/vjoon/K4/K4 Layout/${version}/</p>`;
-          }
-          if (prod === "InCopy") {
-            pathsHTML += `<p><strong>InCopy:</strong> ${basePath}/Library/Preferences/vjoon/K4/K4 Edit/${version}/</p>`;
-          }
-        } else {
-          basePath = useHome ? "%USERPROFILE%" : "\\Users\\[user]";
-          if (prod === "InDesign") {
-            pathsHTML += `<p><strong>InDesign:</strong> ${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Layout\\${version}\\</p>`;
-          }
-          if (prod === "InCopy") {
-            pathsHTML += `<p><strong>InCopy:</strong> ${basePath}\\AppData\\Roaming\\vjoon\\K4\\K4 Edit\\${version}\\</p>`;
-          }
-        }
-      });
-      document.getElementById("installPaths").innerHTML = pathsHTML;
-    }
-    
-    // --- Event Listeners for Installation Instructions Controls ---
-    document.getElementById('osMac').addEventListener('change', updateInstallPaths);
-    document.getElementById('osWin').addEventListener('change', updateInstallPaths);
-    document.getElementById('productInDesign').addEventListener('change', updateInstallPaths);
-    document.getElementById('productInCopy').addEventListener('change', updateInstallPaths);
-    document.getElementById('versionSelect').addEventListener('change', updateInstallPaths);
-    document.getElementById('useHomeVariable').addEventListener('change', updateInstallPaths);
     
     // --- Load Values from URL Query Parameters, If Present ---
     function loadFromQueryParams() {
       const params = new URLSearchParams(window.location.search);
       let hasServer = false;
-      if (params.has("server_name")) {
-        const name = params.get("server_name");
-        const protocol = params.get("server_protocol") || "http";
-        const address = params.get("server_address") || "";
-        const port = params.get("server_port") ? Number(params.get("server_port")) : 8443;
-        const path = params.get("server_path") || "/K4Server/";
-        const disabled = params.get("server_disabled") === "true";
+      if (hasParam(params, "server_name")) {
+        const name = getParam(params, "server_name");
+        const protocol = getParam(params, "server_protocol") || "https"; // Updated default to match shareConfig
+        const address = getParam(params, "server_address") || "";
+        const port = getParam(params, "server_port") ? Number(getParam(params, "server_port")) : 8443;
+        const path = getParam(params, "server_path") || "/K4Server/";
+        const disabled = getParam(params, "server_disabled") === "true";
         createServerEntry({ name, protocol, address, port, path, disabled });
         hasServer = true;
       }
       if (!hasServer) {
         createServerEntry();
       }
-      if (params.has("outputMode")) {
-        document.getElementById("outputMode").value = params.get("outputMode");
+      // Load InCopyPrintSettings with defaults
+      if (hasParam(params, "outputMode")) {
+        document.getElementById("outputMode").value = getParam(params, "outputMode");
+      } else {
+        document.getElementById("outputMode").value = 'default';
       }
-      if (params.has("imageData")) {
-        document.getElementById("imageData").value = params.get("imageData");
+      if (hasParam(params, "imageData")) {
+        document.getElementById("imageData").value = getParam(params, "imageData");
+      } else {
+        document.getElementById("imageData").value = 'default';
       }
-      if (params.has("pagePosition")) {
-        document.getElementById("pagePosition").value = params.get("pagePosition");
+      if (hasParam(params, "pagePosition")) {
+        document.getElementById("pagePosition").value = getParam(params, "pagePosition");
+      } else {
+        document.getElementById("pagePosition").value = 'default';
       }
-      if (params.has("includeProxy") && params.get("includeProxy") === "true") {
+      // Load proxy settings with defaults
+      if (hasParam(params, "includeProxy") && getParam(params, "includeProxy") === "true") {
         document.getElementById("includeProxy").checked = true;
         document.getElementById("proxyUrl").disabled = false;
-        if (params.has("proxyUrl")) {
-          document.getElementById("proxyUrl").value = params.get("proxyUrl");
+        if (hasParam(params, "proxyUrl")) {
+          document.getElementById("proxyUrl").value = getParam(params, "proxyUrl");
         }
+      } else {
+        document.getElementById("includeProxy").checked = false;
+        document.getElementById("proxyUrl").disabled = true;
+        document.getElementById("proxyUrl").value = '';
       }
-      if (params.has("testUrl")) {
-        document.getElementById("testUrl").value = params.get("testUrl");
+      if (hasParam(params, "testUrl")) {
+        document.getElementById("testUrl").value = getParam(params, "testUrl");
+      }
+      // Load installation settings with defaults
+      if (hasParam(params, "os")) {
+        const os = getParam(params, "os");
+        if (os === "win") {
+          document.getElementById("osWin").checked = true;
+          document.getElementById("osMac").checked = false;
+        } else {
+          document.getElementById("osMac").checked = true;
+          document.getElementById("osWin").checked = false;
+        }
+      } else {
+        // Default to mac
+        document.getElementById("osMac").checked = true;
+        document.getElementById("osWin").checked = false;
+      }
+      // Handle productInDesign - default is true, only set to false if explicitly "false"
+      if (hasParam(params, "productInDesign")) {
+        document.getElementById("productInDesign").checked = getParam(params, "productInDesign") === "true";
+      } else {
+        document.getElementById("productInDesign").checked = true; // Default
+      }
+      // Handle productInCopy - default is false, only set to true if explicitly "true"  
+      if (hasParam(params, "productInCopy")) {
+        document.getElementById("productInCopy").checked = getParam(params, "productInCopy") === "true";
+      } else {
+        document.getElementById("productInCopy").checked = false; // Default
+      }
+      if (hasParam(params, "versionSelect")) {
+        document.getElementById("versionSelect").value = getParam(params, "versionSelect");
+      } else {
+        document.getElementById("versionSelect").value = '2024'; // Default
+      }
+      // Handle useHomeVariable - default is true, only set to false if explicitly "false"
+      if (hasParam(params, "useHomeVariable")) {
+        document.getElementById("useHomeVariable").checked = getParam(params, "useHomeVariable") === "true";
+      } else {
+        document.getElementById("useHomeVariable").checked = true; // Default
       }
       generateXml();
       updateInstallPaths();
+      
+      // Unhide and activate the Shared Config tab if any expected URL parameter is present.
+      const expectedKeys = ["server_name", "outputMode", "imageData", "pagePosition", "includeProxy", "testUrl", "os", "productInDesign", "productInCopy", "versionSelect", "useHomeVariable"];
+      if (expectedKeys.some(key => hasParam(params, key))) {
+        const sharedTabLi = document.getElementById("shared-tab-li");
+        if (sharedTabLi) {
+          sharedTabLi.classList.remove("d-none");
+          var sharedTab = new bootstrap.Tab(document.getElementById('shared-tab'));
+          sharedTab.show();
+        }
+      }
     }
     
-    // --- Initialize Page ---
-    document.addEventListener('DOMContentLoaded', loadFromQueryParams);
+    // --- File Upload Processing ---
+    function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const xmlText = evt.target.result;
+        let parser = new DOMParser();
+        let xmlDoc = parser.parseFromString(xmlText, "application/xml");
+        
+        // Process Servers
+        const serversNode = xmlDoc.getElementsByTagName("servers")[0];
+        let loadedServers = [];
+        if (serversNode) {
+          for (let i = 0; i < serversNode.childNodes.length; i++) {
+            let child = serversNode.childNodes[i];
+            if (child.nodeType === Node.ELEMENT_NODE && child.tagName === "server") {
+              let s = {
+                name: child.getAttribute("name") || '',
+                protocol: child.getAttribute("protocol") || '',
+                address: child.getAttribute("address") || '',
+                port: Number(child.getAttribute("port") || 8443),
+                path: child.getAttribute("path") || '',
+                disabled: false
+              };
+              loadedServers.push(s);
+            } else if (child.nodeType === Node.COMMENT_NODE) {
+              // Try to parse commented-out server entries (disabled servers)
+              let tempDoc = parser.parseFromString("<wrapper>" + child.textContent + "</wrapper>", "application/xml");
+              let commentedServers = tempDoc.getElementsByTagName("server");
+              for (let j = 0; j < commentedServers.length; j++) {
+                let s = {
+                  name: commentedServers[j].getAttribute("name") || '',
+                  protocol: commentedServers[j].getAttribute("protocol") || '',
+                  address: commentedServers[j].getAttribute("address") || '',
+                  port: Number(commentedServers[j].getAttribute("port") || 8443),
+                  path: commentedServers[j].getAttribute("path") || '',
+                  disabled: true
+                };
+                loadedServers.push(s);
+              }
+            }
+          }
+        }
+        // Replace current servers with those loaded from the file.
+        servers = [];
+        loadedServers.forEach(s => {
+          const serverId = Date.now() + Math.random().toString(36).substring(2, 7);
+          servers.push({ id: serverId, ...s });
+        });
+        renderServers();
+        
+        // Process InCopy Print Settings
+        const inCopyPrintSettings = xmlDoc.getElementsByTagName("inCopyPrintSettings")[0];
+        if (inCopyPrintSettings) {
+          const outputMode = inCopyPrintSettings.getAttribute("outputMode");
+          if (outputMode) {
+            document.getElementById("outputMode").value = outputMode;
+          }
+          const imageData = inCopyPrintSettings.getAttribute("imageData");
+          if (imageData) {
+            document.getElementById("imageData").value = imageData;
+          }
+          const pagePosition = inCopyPrintSettings.getAttribute("pagePosition");
+          if (pagePosition) {
+            document.getElementById("pagePosition").value = pagePosition;
+          }
+        }
+        
+        // Process Proxy Settings
+        const proxy = xmlDoc.getElementsByTagName("proxy")[0];
+        if (proxy) {
+          const proxyUrl = proxy.getAttribute("url");
+          if (proxyUrl && isValidURL(proxyUrl)) {
+            document.getElementById("includeProxy").checked = true;
+            document.getElementById("proxyUrl").disabled = false;
+            document.getElementById("proxyUrl").value = proxyUrl;
+          } else {
+            document.getElementById("includeProxy").checked = false;
+            document.getElementById("proxyUrl").disabled = true;
+            document.getElementById("proxyUrl").value = '';
+          }
+        } else {
+          document.getElementById("includeProxy").checked = false;
+          document.getElementById("proxyUrl").disabled = true;
+          document.getElementById("proxyUrl").value = '';
+        }
+        
+        generateXml();
+        updateInstallPaths();
+      };
+      reader.onerror = function() {
+        alert("Error reading file");
+      };
+      reader.readAsText(file);
+    }
+    
+    // --- Attach All Static Event Listeners Once DOM is Ready ---
+    document.addEventListener('DOMContentLoaded', function() {
+      // InCopy Print Settings and Proxy Inputs
+      document.getElementById('outputMode').addEventListener('change', generateXml);
+      document.getElementById('imageData').addEventListener('change', generateXml);
+      document.getElementById('pagePosition').addEventListener('change', generateXml);
+      document.getElementById('includeProxy').addEventListener('change', function(e) {
+        document.getElementById('proxyUrl').disabled = !e.target.checked;
+        generateXml();
+      });
+      document.getElementById('proxyUrl').addEventListener('change', generateXml);
+      
+      // Other Controls
+      document.getElementById('copyBtn').addEventListener('click', copyXml);
+      document.getElementById('downloadBtn').addEventListener('click', downloadXml);
+      document.getElementById('shareBtn').addEventListener('click', shareConfig);
+      document.getElementById('newBtn').addEventListener('click', resetForm);
+      document.getElementById('addServerBtn').addEventListener('click', function() {
+        createServerEntry({ name: '', protocol: 'http', address: '', port: 8443, path: '/K4Server/', disabled: false });
+      });
+      document.getElementById('applyTestUrlBtn').addEventListener('click', applyTestUrl);
+      
+      // Installation Instructions Controls
+      document.getElementById('osMac').addEventListener('change', updateInstallPaths);
+      document.getElementById('osWin').addEventListener('change', updateInstallPaths);
+      document.getElementById('productInDesign').addEventListener('change', updateInstallPaths);
+      document.getElementById('productInCopy').addEventListener('change', updateInstallPaths);
+      document.getElementById('versionSelect').addEventListener('change', updateInstallPaths);
+      document.getElementById('useHomeVariable').addEventListener('change', updateInstallPaths);
+      
+      // Attach file upload listener for "Load Config"
+      document.getElementById('uploadFile').addEventListener('change', handleFileUpload);
+      
+      // Finally, load any query parameter values.
+      loadFromQueryParams();
+    });
   </script>
 </body>
 </html>

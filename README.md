@@ -38,6 +38,7 @@ by changing values on the web page.
 * Values may be modified in the Servers, InCopy Print Settings, and Proxy Settings sections. Changes will be reflected in the XML preview on the right side of the page.
 
 * Once the settings have been specified the K4 Conig.xml maybe copied, downloaded, or shared by clicking the appropriate button.
+* Read installation instructions and specify platform and versions to get a One-liner Install that can be pasted in to Terminal or CMD.
 
 ## Help
 
@@ -55,6 +56,8 @@ This SPA was developed by Scott Dunn at [Flux Consulting, Inc.](https://fluxcons
     * Inital version
 * 2025-09-05
     * Optimized share URLs
+    * Added One-liner Install feature
+    * Now handles cases where admin URL is pasted instead of test URL
 
 ## License
 
