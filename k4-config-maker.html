@@ -78,6 +78,11 @@
               <input type="url" id="testUrl" class="form-control" placeholder="https://example.com:8443/K4Server/test/">
             </div>
             <button type="button" class="btn btn-secondary" id="applyTestUrlBtn">Apply Test URL</button>
+            <button type="button" class="btn btn-primary" id="checkServerBtn">Check</button>
+            <div id="checkResults" class="mt-3" style="display:none;">
+              <h6>Reachability Test Results:</h6>
+              <div id="checkResultsContent"></div>
+            </div>
           </div>
           <!-- Panel 4: Shared Config (added when URL data is detected) -->
           <div class="tab-pane fade" id="shared-panel" role="tabpanel" aria-labelledby="shared-tab">
@@ -565,6 +570,62 @@
       });
     }
     
+    // --- Check Server Reachability ---
+    async function checkServerReachability() {
+      const testUrlInput = document.getElementById('testUrl');
+      const testUrlValue = testUrlInput.value.trim();
+      const resultsDiv = document.getElementById('checkResults');
+      const resultsContent = document.getElementById('checkResultsContent');
+
+      if (!isValidURL(testUrlValue)) {
+        alert("Invalid URL. Please enter a valid http or https URL.");
+        testUrlInput.classList.add("error");
+        return;
+      }
+      testUrlInput.classList.remove("error");
+
+      // Show results container
+      resultsDiv.style.display = 'block';
+      resultsContent.innerHTML = '<p class="text-muted">Testing server reachability...</p>';
+
+      const times = [];
+      const numAttempts = 6;
+
+      for (let i = 0; i < numAttempts; i++) {
+        resultsContent.innerHTML = `<p class="text-muted">Testing attempt ${i + 1}/${numAttempts}...</p>`;
+
+        try {
+          const t0 = performance.now();
+          await fetch(testUrlValue + (testUrlValue.includes('?') ? '&' : '?') + 'ts=' + Date.now(), {
+            mode: 'no-cors',
+            method: 'GET',
+          });
+          const latency = performance.now() - t0;
+          times.push(latency);
+        } catch (error) {
+          resultsContent.innerHTML = `<div class="alert alert-danger">
+            <strong>Error:</strong> Failed to reach server. ${error.message}
+          </div>`;
+          return;
+        }
+      }
+
+      // Calculate average excluding first attempt
+      const timesExcludingFirst = times.slice(1);
+      const average = timesExcludingFirst.reduce((sum, time) => sum + time, 0) / timesExcludingFirst.length;
+
+      // Display results
+      let resultsHtml = '<div class="alert alert-success"><strong>Success:</strong> Server is reachable!</div>';
+      resultsHtml += '<p><strong>Response Times:</strong></p><ul>';
+      times.forEach((time, index) => {
+        resultsHtml += `<li>Attempt ${index + 1}: ${time.toFixed(1)} ms${index === 0 ? ' <em>(excluded from average)</em>' : ''}</li>`;
+      });
+      resultsHtml += '</ul>';
+      resultsHtml += `<p><strong>Average Response Time (attempts 2-6):</strong> ${average.toFixed(1)} ms</p>`;
+
+      resultsContent.innerHTML = resultsHtml;
+    }
+
     // --- Parse Test URL into Fields ---
     function applyTestUrl() {
       const testUrlInput = document.getElementById('testUrl');
@@ -963,6 +1024,7 @@
         createServerEntry({ name: '', protocol: 'http', address: '', port: 8443, path: '/K4Server/', disabled: false });
       });
       document.getElementById('applyTestUrlBtn').addEventListener('click', applyTestUrl);
+      document.getElementById('checkServerBtn').addEventListener('click', checkServerReachability);
       
       // Installation Instructions Controls
       document.getElementById('osMac').addEventListener('change', updateInstallPaths);
