@@ -20,14 +20,6 @@
       right: 10px;
     }
     .error { border-color: red; }
-    /* Center download/share buttons below XML preview */
-    .download-btn-container {
-      text-align: center;
-      margin-top: 10px;
-    }
-    .download-btn-container button {
-      margin: 5px;
-    }
   </style>
 </head>
 <body>
@@ -44,13 +36,13 @@
         <!-- Top 4-Panel Interface -->
         <ul class="nav nav-tabs" id="topTab" role="tablist">
           <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="new-tab" data-bs-toggle="tab" data-bs-target="#new-panel" type="button" role="tab">New</button>
+            <button class="nav-link active" id="test-tab" data-bs-toggle="tab" data-bs-target="#test-panel" type="button" role="tab">Apply Test URL</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="new-tab" data-bs-toggle="tab" data-bs-target="#new-panel" type="button" role="tab">New</button>
           </li>
           <li class="nav-item" role="presentation">
             <button class="nav-link" id="load-tab" data-bs-toggle="tab" data-bs-target="#load-panel" type="button" role="tab">Load Config</button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link" id="test-tab" data-bs-toggle="tab" data-bs-target="#test-panel" type="button" role="tab">Apply Test URL</button>
           </li>
           <!-- New Shared Config Tab (initially hidden) -->
           <li class="nav-item d-none" role="presentation" id="shared-tab-li">
@@ -58,26 +50,29 @@
           </li>
         </ul>
         <div class="tab-content border-bottom border-start border-end p-3" id="topTabContent">
-          <!-- Panel 1: New -->
-          <div class="tab-pane fade show active" id="new-panel" role="tabpanel" aria-labelledby="new-tab">
+          <!-- Panel 1: Apply Test URL -->
+          <div class="tab-pane fade show active" id="test-panel" role="tabpanel" aria-labelledby="test-tab">
+            <p>This feature will automatically set some server values from the provided URL. (It will not affect InCopy or Proxy settings.)</p>
+            <div class="mb-3">
+              <label for="testUrl" class="form-label">Test URL</label>
+              <input type="url" id="testUrl" class="form-control" placeholder="https://example.com:8443/K4Server/test/" list="testUrlHistory">
+              <datalist id="testUrlHistory">
+                <!-- Previous URLs will be populated here -->
+              </datalist>
+            </div>
+            <button type="button" class="btn btn-secondary" id="applyTestUrlBtn">Apply Test URL</button>
+          </div>
+          <!-- Panel 2: New -->
+          <div class="tab-pane fade" id="new-panel" role="tabpanel" aria-labelledby="new-tab">
             <p>Clicking "New" will reset all values to their default settings. This will clear any current changes.</p>
             <button type="button" class="btn btn-warning" id="newBtn">New</button>
           </div>
-          <!-- Panel 2: Load Config -->
+          <!-- Panel 3: Load Config -->
           <div class="tab-pane fade" id="load-panel" role="tabpanel" aria-labelledby="load-tab">
             <div class="mb-3">
               <label for="uploadFile" class="form-label">Upload Existing "K4 Config.xml" file</label>
               <input type="file" id="uploadFile" class="form-control" accept=".xml">
             </div>
-          </div>
-          <!-- Panel 3: Apply Test URL -->
-          <div class="tab-pane fade" id="test-panel" role="tabpanel" aria-labelledby="test-tab">
-            <p>This feature will automatically set some server values from the provided URL. (It will not affect InCopy or Proxy settings.)</p>
-            <div class="mb-3">
-              <label for="testUrl" class="form-label">Test URL</label>
-              <input type="url" id="testUrl" class="form-control" placeholder="https://example.com:8443/K4Server/test/">
-            </div>
-            <button type="button" class="btn btn-secondary" id="applyTestUrlBtn">Apply Test URL</button>
           </div>
           <!-- Panel 4: Shared Config (added when URL data is detected) -->
           <div class="tab-pane fade" id="shared-panel" role="tabpanel" aria-labelledby="shared-tab">
@@ -171,21 +166,19 @@
             </div>
           </div>
         </div> <!-- End Accordion -->
-      </div>
-      
-      <!-- Right Column: XML Preview, Download/Share, and Installation Instructions -->
-      <div class="col-md-6">
+
+        <br/>
         <h6 class="card-title"><span style='font-size: 36px; vertical-align:middle;'>❸</span><span style='vertical-align: middle;'> Get the config</span></h6>
         <div class="xml-preview-container border p-3">
           <h5 class="card-title">K4 Config.xml</h5>
+          <button type="button" class="btn btn-sm btn-primary copy-button" style="right: 100px;" id="downloadBtn">Download</button>
           <button type="button" class="btn btn-sm btn-outline-secondary copy-button" id="copyBtn">Copy</button>
           <pre><code id="xmlOutput" class="language-xml"></code></pre>
         </div>
-        <div class="download-btn-container">
-          <button type="button" class="btn btn-primary" id="downloadBtn">Download K4 Config.xml</button>
-          <button type="button" class="btn btn-secondary" id="shareBtn">Share</button>
-        </div>
-        <!-- Installation Instructions Section -->
+      </div>
+
+      <!-- Right Column: Installation Instructions -->
+      <div class="col-md-6">
         <h6 class="card-title"><span style='font-size: 36px; vertical-align:middle;'>❹</span><span style='vertical-align: middle;'> Install it</span></h6>
         <div class="card mt-4">
           <div class="card-body">
@@ -236,6 +229,9 @@
             </div>
             <p>Make sure the file is named <code>K4 Config.xml</code></p>
           </div>
+        </div>
+        <div class="text-center mt-3">
+          <button type="button" class="btn btn-secondary" id="shareBtn">Share This Config</button>
         </div>
       </div>
     </div> <!-- End row -->
@@ -565,6 +561,40 @@
       });
     }
     
+    // --- URL History Management ---
+    function saveUrlToHistory(url) {
+      if (!url || url.trim() === '') return;
+
+      const maxHistorySize = 10;
+      let history = JSON.parse(localStorage.getItem('testUrlHistory') || '[]');
+
+      // Remove if already exists (to move it to front)
+      history = history.filter(item => item !== url);
+
+      // Add to front
+      history.unshift(url);
+
+      // Limit size
+      if (history.length > maxHistorySize) {
+        history = history.slice(0, maxHistorySize);
+      }
+
+      localStorage.setItem('testUrlHistory', JSON.stringify(history));
+      populateUrlHistory();
+    }
+
+    function populateUrlHistory() {
+      const history = JSON.parse(localStorage.getItem('testUrlHistory') || '[]');
+      const datalist = document.getElementById('testUrlHistory');
+      datalist.innerHTML = '';
+
+      history.forEach(url => {
+        const option = document.createElement('option');
+        option.value = url;
+        datalist.appendChild(option);
+      });
+    }
+
     // --- Parse Test URL into Fields ---
     function applyTestUrl() {
       const testUrlInput = document.getElementById('testUrl');
@@ -575,6 +605,9 @@
         return;
       }
       testUrlInput.classList.remove("error");
+
+      // Save to history
+      saveUrlToHistory(testUrlValue);
       let urlObj;
       try {
         urlObj = new URL(testUrlValue);
@@ -595,6 +628,23 @@
         port = (protocol === "https") ? 443 : 80;
       }
       let fullPath = urlObj.pathname;
+      let adminConverted = false;
+      
+      // Check if this is an admin URL and convert it to test URL
+      let adminIndex = fullPath.indexOf("admin/");
+      if (adminIndex === -1) {
+        adminIndex = fullPath.indexOf("admin");
+        if (adminIndex !== -1 && adminIndex === fullPath.length - 5) {
+          // URL ends with "admin" (no trailing slash)
+          fullPath = fullPath.substring(0, adminIndex) + "test/";
+          adminConverted = true;
+        }
+      } else {
+        // URL contains "admin/"
+        fullPath = fullPath.replace("admin/", "test/");
+        adminConverted = true;
+      }
+      
       let testIndex = fullPath.indexOf("test/");
       let path = "";
       if (testIndex !== -1) {
@@ -604,6 +654,11 @@
         }
       } else {
         path = fullPath;
+      }
+      
+      // Show notification if admin URL was converted
+      if (adminConverted) {
+        alert("Admin URL detected and converted to test URL for K4 configuration.");
       }
       if (servers.length === 0) {
         createServerEntry({ name: address, protocol: protocol, address: address, port: Number(port), path: path });
@@ -931,7 +986,7 @@
         generateXml();
       });
       document.getElementById('proxyUrl').addEventListener('change', generateXml);
-      
+
       // Other Controls
       document.getElementById('copyBtn').addEventListener('click', copyXml);
       document.getElementById('downloadBtn').addEventListener('click', downloadXml);
@@ -941,7 +996,7 @@
         createServerEntry({ name: '', protocol: 'http', address: '', port: 8443, path: '/K4Server/', disabled: false });
       });
       document.getElementById('applyTestUrlBtn').addEventListener('click', applyTestUrl);
-      
+
       // Installation Instructions Controls
       document.getElementById('osMac').addEventListener('change', updateInstallPaths);
       document.getElementById('osWin').addEventListener('change', updateInstallPaths);
@@ -949,10 +1004,13 @@
       document.getElementById('productInCopy').addEventListener('change', updateInstallPaths);
       document.getElementById('versionSelect').addEventListener('change', updateInstallPaths);
       document.getElementById('useHomeVariable').addEventListener('change', updateInstallPaths);
-      
+
       // Attach file upload listener for "Load Config"
       document.getElementById('uploadFile').addEventListener('change', handleFileUpload);
-      
+
+      // Populate URL history on load
+      populateUrlHistory();
+
       // Finally, load any query parameter values.
       loadFromQueryParams();
     });
