@@ -591,6 +591,7 @@
       history.forEach(url => {
         const option = document.createElement('option');
         option.value = url;
+        option.textContent = url; // Add text content for better browser compatibility
         datalist.appendChild(option);
       });
     }
