@@ -11,27 +11,58 @@
   <!-- Prism CSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.css" rel="stylesheet" />
   <style>
-    body { margin: 20px; }
+    body {
+      margin: 20px;
+      background-color: #F5F7F0;
+    }
     .server-disabled { text-decoration: line-through; }
-    .xml-preview-container { position: relative; }
+    .xml-preview-container {
+      position: relative;
+      background-color: white;
+    }
     .copy-button {
       position: absolute;
       top: 10px;
       right: 10px;
     }
     .error { border-color: red; }
+    .headline-title {
+      font-weight: 900;
+      color: black;
+    }
+    .card, .accordion-item, .tab-content {
+      background-color: white;
+    }
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 10px;
+    }
+    .header-left {
+      flex: 1;
+    }
+    .header-logo {
+      margin-left: 20px;
+    }
   </style>
 </head>
 <body>
   <div class="container-fluid">
-    <h1><span style='font-family: monospace, Consolar, DejaVu Sans Mono, Lucida Console, Courier, "Courier New"; font-weight: bold;'>K4 ConfigSmith</span></h1>
-    <p class="text-muted">A solution by <i>Flux Consulting, Inc.</i> Est. 1996.</p>
+    <div class="header-container">
+      <div class="header-left">
+        <h1><span class="headline-title">K4 ConfigSmith</span></h1>
+        <p class="text-muted">A solution by <i>Flux Consulting, Inc.</i> Est. 1996.</p>
+        <h5 class="card-title">Craft your K4 Client Configuration</h5>
+      </div>
+      <div class="header-logo">
+        <img src="flux-logo-color_new-600x241.png" alt="Flux Consulting" width="250" height="100">
+      </div>
+    </div>
     <hr/>
     <div class="row">
       <!-- Left Column: Controls and Form -->
       <div class="col-md-6">
-        <h5 class="card-title">Craft your K4 Client Configuration</h5>
-        <br/>
         <h6 class="card-title" style='margin-bottom: 3px;'><span style='font-size: 36px; vertical-align:middle;'>❶</span><span style="vertical-align: middle;"> Initialize Your K4 Config.xml settings</span></h6>
         <!-- Top 4-Panel Interface -->
         <ul class="nav nav-tabs" id="topTab" role="tablist">
