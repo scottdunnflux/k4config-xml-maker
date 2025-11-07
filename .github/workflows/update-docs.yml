@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "k4-config-maker.html"
+      - "flux-logo-color_new-600x241.png"
 
 jobs:
   update-docs:
@@ -24,7 +25,8 @@ jobs:
           git fetch origin docs
           git checkout docs
           git checkout main -- k4-config-maker.html
+          git checkout main -- flux-logo-color_new-600x241.png
           mv k4-config-maker.html index.html
-          git add index.html
-          git commit -m "Update index.html from main"
+          git add index.html flux-logo-color_new-600x241.png
+          git commit -m "Update index.html and assets from main"
           git push origin docs
