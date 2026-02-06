@@ -28,18 +28,30 @@ labels+=("InDesign 2025") ; products+=("K4 Layout") ; versions+=("2025")
 # --- Usage ---
 usage() {
   cat <<EOF
-Usage: k4cs [--url <K4 test or admin URL>] [--dry-run]
+k4cs — Install K4 Config.xml files from a server URL
+
+Usage:
+  k4cs [--url <URL>] [--dry-run]
+
+Modes:
+  k4cs --url <URL>    Parse URL, prompt for products/versions, install configs
+  k4cs                Pick from recent servers with remembered defaults
 
 Options:
-  --url       K4 server test or admin URL (if omitted, pick from history)
-  --dry-run   Show what would be created without writing files
+  --url <URL>   K4 test or admin URL (admin URLs are auto-converted)
+  --dry-run     Show what would be created without writing files
+  -h, --help    Show this help
 
 Examples:
   k4cs --url https://example.com:8443/K4Server/test/
   k4cs --url https://example.com/K4Server/admin/ --dry-run
-  k4cs                          # interactive: pick from recent servers
+  k4cs            # pick from recent servers, accept defaults with Enter
+
+History:
+  Selections are saved to ~/Library/Application Support/k4cs/history
+  and recalled when running without --url.
 EOF
-  exit 1
+  exit 0
 }
 
 # --- History functions ---
