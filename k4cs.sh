@@ -130,12 +130,47 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# --- Show current configurations ---
+show_current_configs() {
+  local config_base="$HOME/Library/Preferences/vjoon/K4"
+  local found=false
+  local max_label=0
+  local config_labels=()
+  local config_hosts=()
+
+  for i in "${!labels[@]}"; do
+    local config_file="${config_base}/${products[$i]}/${versions[$i]}/K4 Config.xml"
+    if [[ -f "$config_file" ]]; then
+      local label="${versions[$i]}-${products[$i]}"
+      local host
+      host=$(sed -n 's/.*<server[^>]* address="\([^"]*\)".*/\1/p' "$config_file" | head -1)
+      if [[ -n "$host" ]]; then
+        config_labels+=("$label")
+        config_hosts+=("$host")
+        if [[ ${#label} -gt $max_label ]]; then
+          max_label=${#label}
+        fi
+        found=true
+      fi
+    fi
+  done
+
+  if $found; then
+    echo ""
+    echo "Current configurations:"
+    for i in "${!config_labels[@]}"; do
+      printf "  %-${max_label}s  %s\n" "${config_labels[$i]}" "${config_hosts[$i]}"
+    done
+  fi
+}
+
 # --- If no URL, show server picker ---
 if [[ -z "$URL" ]]; then
   load_history
+  show_current_configs
 
   if [[ ${#hist_urls[@]} -eq 0 ]]; then
-    printf "Enter URL: "
+    printf "\nEnter URL: "
     read -r URL
     if [[ -z "$URL" ]]; then
       echo "No URL provided. Exiting."
