@@ -40,6 +40,26 @@ by changing values on the web page.
 * Once the settings have been specified the K4 Conig.xml maybe copied, downloaded, or shared by clicking the appropriate button.
 * Read installation instructions and specify platform and versions to get a One-liner Install that can be pasted in to Terminal or CMD.
 
+## CLI Tool: k4cs.sh
+
+`k4cs.sh` is a companion shell script for installing K4 Config.xml files directly from a K4 server URL.
+
+### Features
+
+* Parses K4 test or admin URLs and generates Config.xml files
+* Installs configs to the correct macOS paths for InCopy/InDesign 2024 and 2025
+* Remembers recently used servers and product selections
+* Displays current configurations — shows each installed K4 Config.xml with its version, product, and configured host at a glance
+* Supports `--dry-run` mode to preview changes without writing files
+
+### Usage
+
+```
+k4cs --url https://example.com:8443/K4Server/test/
+k4cs                # pick from recent servers
+k4cs --dry-run      # preview without writing
+```
+
 ## Help
 
 When in doubt, get a working test URL. This URL typically follows the format `https://k4.example.com:8443/K4Server/test/`. Once you've confirmed that the test URL works, use it with the Apply Test URL feature.
@@ -58,6 +78,9 @@ This SPA was developed by Scott Dunn at [Flux Consulting, Inc.](https://fluxcons
     * Optimized share URLs
     * Added One-liner Install feature
     * Now handles cases where admin URL is pasted instead of test URL
+* 2026-03-09
+    * Added `k4cs.sh` CLI tool for installing K4 Config.xml files
+    * CLI displays current configurations with host info alongside recent server history
 
 ## License
 

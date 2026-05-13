@@ -24,6 +24,8 @@ labels+=("InCopy 2024")   ; products+=("K4 Edit")   ; versions+=("2024")
 labels+=("InDesign 2024") ; products+=("K4 Layout") ; versions+=("2024")
 labels+=("InCopy 2025")   ; products+=("K4 Edit")   ; versions+=("2025")
 labels+=("InDesign 2025") ; products+=("K4 Layout") ; versions+=("2025")
+labels+=("InCopy 2026")   ; products+=("K4 Edit")   ; versions+=("2026")
+labels+=("InDesign 2026") ; products+=("K4 Layout") ; versions+=("2026")
 
 # --- Usage ---
 usage() {
