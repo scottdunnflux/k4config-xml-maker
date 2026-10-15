@@ -13,7 +13,7 @@ URL=""
 DEFAULT_SELECTIONS=""
 HISTORY_DIR="$HOME/Library/Application Support/k4cs"
 HISTORY_FILE="$HISTORY_DIR/history"
-MAX_HISTORY=10
+MAX_HISTORY=20
 
 # --- Product/Version options (defined early for use in history display) ---
 declare -a labels=()
