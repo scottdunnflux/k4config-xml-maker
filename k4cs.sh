@@ -49,6 +49,9 @@ Examples:
   k4cs --url https://example.com/K4Server/admin/ --dry-run
   k4cs            # pick from recent servers, accept defaults with Enter
 
+After installing, k4cs offers to launch the matching InCopy/InDesign apps
+(Enter skips).
+
 History:
   Selections are saved to ~/Library/Application Support/k4cs/history
   and recalled when running without --url.
@@ -385,3 +388,61 @@ done
 if ! $DRY_RUN; then
   save_history "$URL" "$selection_string"
 fi
+
+# --- Offer to launch installed apps (skip on dry-run or non-interactive) ---
+if $DRY_RUN || [[ ! -t 0 ]]; then
+  exit 0
+fi
+
+declare -a launch_apps=()
+for idx in "${selected[@]}"; do
+  app="Adobe ${labels[$idx]}"
+  if [[ -d "/Applications/${app}/${app}.app" ]]; then
+    launch_apps+=("$app")
+  fi
+done
+
+if [[ ${#launch_apps[@]} -eq 0 ]]; then
+  exit 0
+fi
+
+echo ""
+echo "Launch app? (space-separated numbers, 'a' for all, Enter to skip):"
+for i in "${!launch_apps[@]}"; do
+  echo "  $((i+1))) ${launch_apps[$i]}"
+done
+
+printf "> "
+read -r launch_pick
+
+if [[ -z "$launch_pick" ]]; then
+  exit 0
+fi
+
+declare -a launch_selected=()
+if [[ "$launch_pick" == "a" || "$launch_pick" == "A" ]]; then
+  launch_selected=("${!launch_apps[@]}")
+else
+  for num in $launch_pick; do
+    if ! [[ "$num" =~ ^[0-9]+$ ]]; then
+      echo "Error: Invalid selection '$num'. Use numbers or 'a' for all." >&2
+      exit 1
+    fi
+    index=$((num - 1))
+    if [[ $index -lt 0 || $index -ge ${#launch_apps[@]} ]]; then
+      echo "Error: Selection '$num' is out of range." >&2
+      exit 1
+    fi
+    launch_selected+=("$index")
+  done
+fi
+
+for index in "${launch_selected[@]}"; do
+  app="${launch_apps[$index]}"
+  # Match on the bundle path; pgrep -x is unreliable since macOS truncates process names to 16 chars
+  if pgrep -qf "/${app}.app/Contents/MacOS/${app}$"; then
+    echo "Note: ${app} is already running — quit and relaunch to load the new config."
+  fi
+  echo "▶ Launching: ${app}"
+  open -a "$app"
+done
