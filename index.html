@@ -766,29 +766,23 @@
         let command = '';
         const fullPath = installPath + (installPath.endsWith('/') || installPath.endsWith('\\') ? '' : (os === 'mac' ? '/' : '\\')) + 'K4 Config.xml';
         
+        // Base64-encode the XML so the command is a single line with no quotes or redirects inside it
+        const bytes = new TextEncoder().encode(xmlContent);
+        const encodedXml = btoa(Array.from(bytes, b => String.fromCharCode(b)).join(''));
+
         if (os === 'mac') {
-          // For macOS, base64-encode the XML so the command is a single line with no quotes or
-          // redirects inside it; multi-line quoted strings break in tcsh (and csh) shells
-          const bytes = new TextEncoder().encode(xmlContent);
-          const encodedXml = btoa(Array.from(bytes, b => String.fromCharCode(b)).join(''));
+          // Multi-line quoted strings break in tcsh (and csh) shells, so decode with base64 instead
           command = `echo ${encodedXml} | base64 -D > "${fullPath}"`;
         } else {
-          // For Windows CMD, use caret escaping for special characters and remove newlines
-          const escapedXml = xmlContent
-            .replace(/\r?\n/g, ' ')  // Replace newlines with spaces to make it single line
-            .replace(/\^/g, '^^')
-            .replace(/</g, '^<')
-            .replace(/>/g, '^>')
-            .replace(/&/g, '^&')
-            .replace(/\|/g, '^|')
-            .replace(/\s+/g, ' ')    // Collapse multiple spaces into single spaces
-            .trim();
-          command = `echo ${escapedXml} > "${fullPath}"`;
+          // Run through powershell so the same command works pasted into CMD or PowerShell;
+          // ExpandEnvironmentVariables handles %USERPROFILE% when PowerShell is the host shell
+          const psPath = fullPath.replace(/'/g, "''");
+          command = `powershell -NoProfile -Command "[IO.File]::WriteAllBytes([Environment]::ExpandEnvironmentVariables('${psPath}'), [Convert]::FromBase64String('${encodedXml}'))"`;
         }
         
         navigator.clipboard.writeText(command)
           .then(() => {
-            alert(`One-liner install command copied to clipboard!\n\nFor ${os === 'mac' ? 'macOS Terminal' : 'Windows Command Prompt'}:\n${command.substring(0, 100)}${command.length > 100 ? '...' : ''}`);
+            alert(`One-liner install command copied to clipboard!\n\nFor ${os === 'mac' ? 'macOS Terminal' : 'Windows Command Prompt or PowerShell'}:\n${command.substring(0, 100)}${command.length > 100 ? '...' : ''}`);
           })
           .catch(err => {
             console.error("Error copying command: ", err);
