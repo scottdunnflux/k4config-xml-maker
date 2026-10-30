@@ -767,10 +767,11 @@
         const fullPath = installPath + (installPath.endsWith('/') || installPath.endsWith('\\') ? '' : (os === 'mac' ? '/' : '\\')) + 'K4 Config.xml';
         
         if (os === 'mac') {
-          // For macOS, use single quotes to wrap XML content (safer than double quotes)
-          // Need to escape any single quotes in the XML by ending quote, adding escaped quote, starting quote again
-          const escapedXml = xmlContent.replace(/'/g, "'\\''");
-          command = `echo '${escapedXml}' > "${fullPath}"`;
+          // For macOS, base64-encode the XML so the command is a single line with no quotes or
+          // redirects inside it; multi-line quoted strings break in tcsh (and csh) shells
+          const bytes = new TextEncoder().encode(xmlContent);
+          const encodedXml = btoa(Array.from(bytes, b => String.fromCharCode(b)).join(''));
+          command = `echo ${encodedXml} | base64 -D > "${fullPath}"`;
         } else {
           // For Windows CMD, use caret escaping for special characters and remove newlines
           const escapedXml = xmlContent
