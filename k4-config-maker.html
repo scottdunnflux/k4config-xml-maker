@@ -771,13 +771,16 @@
         const encodedXml = btoa(Array.from(bytes, b => String.fromCharCode(b)).join(''));
 
         if (os === 'mac') {
-          // Multi-line quoted strings break in tcsh (and csh) shells, so decode with base64 instead
-          command = `echo ${encodedXml} | base64 -D > "${fullPath}"`;
+          // Multi-line quoted strings break in tcsh (and csh) shells, so decode with base64 instead;
+          // mkdir -p creates the folder if missing
+          command = `mkdir -p "${installPath}" && echo ${encodedXml} | base64 -D > "${fullPath}"`;
         } else {
           // Run through powershell so the same command works pasted into CMD or PowerShell;
-          // ExpandEnvironmentVariables handles %USERPROFILE% when PowerShell is the host shell
+          // ExpandEnvironmentVariables handles %USERPROFILE% when PowerShell is the host shell.
+          // CreateDirectory creates the folder if missing; no $ so a PowerShell host expands nothing
+          const psDir = installPath.replace(/'/g, "''");
           const psPath = fullPath.replace(/'/g, "''");
-          command = `powershell -NoProfile -Command "[IO.File]::WriteAllBytes([Environment]::ExpandEnvironmentVariables('${psPath}'), [Convert]::FromBase64String('${encodedXml}'))"`;
+          command = `powershell -NoProfile -Command "[void][IO.Directory]::CreateDirectory([Environment]::ExpandEnvironmentVariables('${psDir}')); [IO.File]::WriteAllBytes([Environment]::ExpandEnvironmentVariables('${psPath}'), [Convert]::FromBase64String('${encodedXml}'))"`;
         }
         
         navigator.clipboard.writeText(command)

@@ -42,7 +42,7 @@ by changing values on the web page.
     * macOS: paste into Terminal. Works in any shell (zsh, bash, tcsh/csh).
     * Windows: paste into Command Prompt or PowerShell.
     * The XML is base64-encoded in the command, so it is written exactly as shown in the preview.
-    * The destination folder must already exist; the command does not create it.
+    * Creates the destination folder if it doesn't exist.
 
 ## CLI Tool: k4cs.sh
 
@@ -87,6 +87,7 @@ This SPA was developed by Scott Dunn at [Flux Consulting, Inc.](https://fluxcons
     * CLI displays current configurations with host info alongside recent server history
 * 2026-11-03
     * One-liner Install now works in tcsh/csh shells on macOS and in PowerShell on Windows
+    * One-liner Install creates the destination folder if missing
 
 ## License
 
