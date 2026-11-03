@@ -38,7 +38,11 @@ by changing values on the web page.
 * Values may be modified in the Servers, InCopy Print Settings, and Proxy Settings sections. Changes will be reflected in the XML preview on the right side of the page.
 
 * Once the settings have been specified the K4 Conig.xml maybe copied, downloaded, or shared by clicking the appropriate button.
-* Read installation instructions and specify platform and versions to get a One-liner Install that can be pasted in to Terminal or CMD.
+* Read installation instructions and specify platform and versions, then click `One-liner Install` to copy a single command that writes the `K4 Config.xml` to the right place:
+    * macOS: paste into Terminal. Works in any shell (zsh, bash, tcsh/csh).
+    * Windows: paste into Command Prompt or PowerShell.
+    * The XML is base64-encoded in the command, so it is written exactly as shown in the preview.
+    * The destination folder must already exist; the command does not create it.
 
 ## CLI Tool: k4cs.sh
 
@@ -81,6 +85,8 @@ This SPA was developed by Scott Dunn at [Flux Consulting, Inc.](https://fluxcons
 * 2026-03-09
     * Added `k4cs.sh` CLI tool for installing K4 Config.xml files
     * CLI displays current configurations with host info alongside recent server history
+* 2026-11-03
+    * One-liner Install now works in tcsh/csh shells on macOS and in PowerShell on Windows
 
 ## License
 
